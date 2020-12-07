@@ -230,6 +230,12 @@ Run below to pick up the aliases
  The debian installer script has different commands than the ubuntu follow along commands. The reason being is that some of the commands that work on ubunutu dont work.
  You can also run each line of the script in a console or ssh terminal.
 
+## Intel QuickSync support 
+I have added Intel QSV support for this branch only, Dont use this branch unless you want Intel quicksync for HandBrake 
+
+You will need to follow along from https://handbrake.fr/docs/en/latest/developer/install-dependencies-ubuntu.html and build from source. The default Ubuntu packages may come with them preinstalled but i didnt test this.
+Make sure you have the correct Intel media driver installed 
+**This will be updated at a later date to allow the user to select quicksync even if they are on the main branch.**
 
 ## Usage
 
