@@ -1,7 +1,7 @@
 # Identification of dvd/bluray
 
 import os
-import sys # noqa # pylint: disable=unused-import
+import sys  # noqa # pylint: disable=unused-import
 import logging
 import urllib
 import re
@@ -11,20 +11,21 @@ import unicodedata
 import xmltodict
 import json
 
-#import getmusictitle
+# import getmusictitle
 from arm.ripper import getmusictitle
 from arm.ripper import utils
 from arm.ui import db
-# from arm.config.config import cfg
 
+
+# from arm.config.config import cfg
 # flake8: noqa: W605
 
 
 def identify(job, logfile):
     """Identify disc attributes"""
     ## Safe way of dealing with log files if the users need to post it online
-    cleanlog = makecleanlogfile(job)
-    logging.debug("Identify Entry point --- job ----"+ str(cleanlog))
+    # cleanlog = makecleanlogfile(job)
+    # logging.debug("Identify Entry point --- job ----" + str(cleanlog))
 
     logging.info("Mounting disc to: " + str(job.mountpoint))
 
@@ -74,10 +75,11 @@ def identify(job, logfile):
                 job.hasnicetitle = False
                 db.session.commit()
 
-            logging.info("Disc title Post ident: " + str(job.title) + " : " + str(job.year) + " : " + str(job.video_type))
+            logging.info(
+                "Disc title Post ident: " + str(job.title) + " : " + str(job.year) + " : " + str(job.video_type))
             ## Safe way of dealing with log files if the users need to post it online
-            cleanlog = makecleanlogfile(job)
-            logging.debug("identify.job.end ----" + str(cleanlog))
+            # cleanlog = makecleanlogfile(job)
+            # logging.debug("identify.job.end ----" + str(cleanlog))
 
     os.system("umount " + job.devpath)
 
@@ -96,7 +98,8 @@ def clean_for_filename(string):
     ## Added from pull 366
     # testing why the return function isn't cleaning
     return re.sub('[^\w\-_\.\(\) ]', '', string)
-    #return string
+    # return string
+
 
 def identify_bluray(job):
     """ Get's Blu-Ray title by parsing XML in bdmt_eng.xml """
@@ -105,7 +108,9 @@ def identify_bluray(job):
         with open(job.mountpoint + '/BDMV/META/DL/bdmt_eng.xml', "rb") as xml_file:
             doc = xmltodict.parse(xml_file.read())
     except OSError as e:
-        logging.error("Disc is a bluray, but bdmt_eng.xml could not be found.  Disc cannot be identified.  Error number is: " + str(e.errno))
+        logging.error(
+            "Disc is a bluray, but bdmt_eng.xml could not be found.  Disc cannot be identified.  Error number is: " + str(
+                e.errno))
         return False
 
     try:
@@ -138,15 +143,12 @@ def identify_bluray(job):
 
 
 def identify_dvd(job):
-    """ Calculates CRC64 for the DVD and calls Windows Media
-        Metaservices and returns the Title and year of DVD """
-    ## Added from pull 366
     """ Manipulates the DVD title and calls OMDB to try and 	
     lookup the title """
 
-    ## Safe way of dealing with log files if the users need to post it online
-    cleanlog = makecleanlogfile(job)
-    logging.debug("####### --- job ----" + str(cleanlog))
+    # Safe way of dealing with log files if the users need to post it online
+    # cleanlog = makecleanlogfile(job)
+    # logging.debug("####### --- job ----" + str(cleanlog))
 
     ## Added from #338
     # Some older DVDs aren't actually labelled
@@ -165,7 +167,6 @@ def identify_dvd(job):
         logging.error("Pydvdid failed with the error: " + str(e))
         dvd_title = fallback_title = str(job.label)
 
-
     logging.info("DVD CRC64 hash is: " + str(crc64))
     job.crc_id = str(crc64)
 
@@ -175,20 +176,20 @@ def identify_dvd(job):
 
     dvd_title = job.label
     logging.debug("dvd_title_label= " + str(dvd_title))
-    ## strip all non-numeric chars and use that for year
+    # strip all non-numeric chars and use that for year
     year = re.sub("[^0-9]", "", str(job.year))
     # next line is not really needed, but we dont want to leave an x somewhere
     dvd_title = job.label.replace("16x9", "")
-    ## Rip out any not alpha chars replace with
+    # Rip out any not alpha chars replace with
     dvd_title = re.sub("[^a-zA-Z ]", " ", dvd_title)
     logging.debug("dvd_title ^a-z= " + str(dvd_title))
-    ## rip out any SKU's at the end of the line
-    dvd_title = re.sub("SKU$", " ", dvd_title)
+    # rip out any SKU's at the end of the line
+    dvd_title = re.sub("SKU$", " ", dvd_title.strip())
     logging.debug("dvd_title SKU$= " + str(dvd_title))
 
     # try to contact omdb
     try:
-        dvd_info_xml = callwebservice(job, job.config.OMDB_API_KEY , dvd_title, year)
+        dvd_info_xml = callwebservice(job, job.config.OMDB_API_KEY, dvd_title, year)
         logging.debug("DVD_INFO_XML: " + str(dvd_info_xml))
     except OSError as e:
         # we couldnt reach omdb
@@ -200,11 +201,12 @@ def identify_dvd(job):
     db.session.commit()
     return True
 
+
 def get_video_details(job):
     """ Clean up title and year.  Get video_type, imdb_id, poster_url from
-    omdbapi.com webservice.\n
+    omdbapi.com webservice.
 
-    job = Instance of Job class\n
+    job = Instance of Job class
     """
     ## Make sure we have a title.
     ## if we do its bluray use job.title not job.label
@@ -235,7 +237,7 @@ def get_video_details(job):
     omdb_api_key = job.config.OMDB_API_KEY
 
     logging.debug("Title: " + title + " | Year: " + year)
-    logging.debug("Calling webservice with title: " + title  + " and year: " + year)
+    logging.debug("Calling webservice with title: " + title + " and year: " + year)
 
     ## Callwebservice already handles commiting to database, no need for identify_dvd()
     response = callwebservice(job, omdb_api_key, title, year)
@@ -290,11 +292,18 @@ def callwebservice(job, omdb_api_key, dvd_title, year=""):
     """ Queries OMDbapi.org for title information and parses type, imdb, and poster info
     """
     if job.config.VIDEOTYPE == "auto":
-        strurl = "http://www.omdbapi.com/?t={1}&y={2}&plot=short&r=json&apikey={0}".format(omdb_api_key, dvd_title, year)
-        logging.debug("http://www.omdbapi.com/?t={1}&y={2}&plot=short&r=json&apikey={0}".format("key_hidden", dvd_title, year))
+        strurl = "http://www.omdbapi.com/?t={1}&y={2}&plot=short&r=json&apikey={0}".format(omdb_api_key, dvd_title,
+                                                                                           year)
+        logging.debug(
+            "http://www.omdbapi.com/?t={1}&y={2}&plot=short&r=json&apikey={0}".format("key_hidden", dvd_title, year))
     else:
-        strurl = "http://www.omdbapi.com/?t={1}&y={2}&type={3}&plot=short&r=json&apikey={0}".format(omdb_api_key, dvd_title, year, job.config.VIDEOTYPE)
-        logging.debug("http://www.omdbapi.com/?t={1}&y={2}&type={3}&plot=short&r=json&apikey={0}".format("key_hidden", dvd_title, year, job.config.VIDEOTYPE))
+        strurl = "http://www.omdbapi.com/?t={1}&y={2}&type={3}&plot=short&r=json&apikey={0}".format(omdb_api_key,
+                                                                                                    dvd_title, year,
+                                                                                                    job.config.VIDEOTYPE)
+        logging.debug(
+            "http://www.omdbapi.com/?t={1}&y={2}&type={3}&plot=short&r=json&apikey={0}".format("key_hidden", dvd_title,
+                                                                                               year,
+                                                                                               job.config.VIDEOTYPE))
 
     logging.debug("***Calling webservice with Title: " + str(dvd_title) + " and Year: " + str(year))
     try:
@@ -329,20 +338,21 @@ def callwebservice(job, omdb_api_key, dvd_title, year=""):
             db.session.commit()
             return doc['Response']
 
-## (PB_KEY=**REMOVED**)  || \(PB_KEY=.*?\)
-## (EMBY_PASSWORD=) || \(EMBY_PASSWORD=.*?\)
-## (EMBY_API_KEY=) || \(EMBY_API_KEY=.*?\)
-## (EMBY_SERVER=) || \(EMBY_SERVER=.*?\)
-## (IFTTT_KEY=) || \(IFTTT_KEY=.*?\)
-## (OMDB_API_KEY=**REMOVED**) || \(OMDB_API_KEY=.*?\)
-## (PO_APP_KEY=)  || \(PO_APP_KEY=.*?\)
-## (PO_USER_KEY=) || \(PO_USER_KEY=.*?\)
-## function to clean the debug log of secret keys
+
 def makecleanlogfile(logfile):
+    """
+    function to clean the debug log of secret keys
+
+    arguments:
+    logfile you want cleaned
+
+    returns:
+    the cleaned logfile String
+    """
     ##TODO: make this cleaner/smaller
 
     ##lets make sure we are using a string
-    logfile=str(logfile)
+    logfile = str(logfile)
     ## TODO: maybe check if the ip is local, if its not strip it from log or add some part protection eg: 89.89.xx.xx
     ## WEBSERVER_IP: x.x.x.x
     ## logging.debug("inside makecleanlogfile: " + str(logfile) + "\n\r")
@@ -426,7 +436,6 @@ def makecleanlogfile(logfile):
     out = re.sub("\(ZILUP_CHAT_ORG=.*?\)", '(ZILUP_CHAT_ORG=** REMOVED **)', out)
     ## format for more entries
     ## out = re.sub("\(CONFIG_ID=.*?\)", '(CONFIG_ID=** REMOVED **)', out)
-
 
     ##logging.debug("our clean log string" + str(out))
     return out

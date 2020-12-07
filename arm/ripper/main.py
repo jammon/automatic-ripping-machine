@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import sys
+
 sys.path.append("/opt/arm")
 
 import argparse  # noqa: E402
@@ -19,7 +20,7 @@ from arm.config.config import cfg  # noqa: E402
 
 from arm.ripper.getkeys import grabkeys  # noqa: E402
 from arm.models.models import Job, Config  # noqa: E402
-from arm.ui import app, db # noqa E402
+from arm.ui import app, db  # noqa E402
 
 
 def entry():
@@ -91,11 +92,40 @@ def check_fstab():
     with open('/etc/fstab', 'r') as f:
         lines = f.readlines()
         for line in lines:
-            ## Now grabs the real uncommented fstab entry
+            # Now grabs the real uncommented fstab entry
             if re.search("^" + job.devpath, line):
                 logging.info("fstab entry is: " + line.rstrip())
                 return
     logging.error("No fstab entry found.  ARM will likely fail.")
+
+
+def check_ip():
+    """
+        Check if user has set an ip in the config file
+        if not gets the most likely ip
+
+        arguments:
+        none
+
+        return:
+        the ip of the host or 127.0.0.1
+    """
+
+    host = cfg['WEBSERVER_IP']
+    if host == 'x.x.x.x':
+        # autodetect host IP address
+        from netifaces import interfaces, ifaddresses, AF_INET
+        ip_list = []
+        for interface in interfaces():
+            inet_links = ifaddresses(interface).get(AF_INET, [])
+            for link in inet_links:
+                ip = link['addr']
+                if ip != '127.0.0.1':
+                    ip_list.append(ip)
+        if len(ip_list) > 0:
+            return ip_list[0]
+        else:
+            return '127.0.0.1'
 
 
 def main(logfile, job):
@@ -109,7 +139,8 @@ def main(logfile, job):
         ## Send the notifications
         utils.notify(job, "ARM notification", "Found disc: " + str(job.title) + ". Disc type is "
                      + str(job.disctype) + ". Main Feature is " + str(job.config.MAINFEATURE)
-                     + ".  Edit entry here: http://" + str(job.config.WEBSERVER_IP) + ":" + str(job.config.WEBSERVER_PORT) + "/jobdetail?job_id=" + str(job.job_id) + " ")
+                     + ".  Edit entry here: http://" + str(check_ip()) + ":" + str(
+            job.config.WEBSERVER_PORT) + "/jobdetail?job_id=" + str(job.job_id) + " ")
     elif job.disctype == "music":
         utils.notify(job, "ARM notification", "Found music CD: " + str(job.label) + ". Ripping all tracks")
     elif job.disctype == "data":
@@ -168,9 +199,10 @@ def main(logfile, job):
                 if job.hasnicetitle:
                     ## Dont use the year if its  0000
                     if job.year != "0000" or job.year != "":
-                        hboutpath = os.path.join(job.config.MEDIA_DIR, str(job.title) + " (" + str(job.year) + ") " + str(ts))
+                        hboutpath = os.path.join(job.config.MEDIA_DIR,
+                                                 str(job.title) + " (" + str(job.year) + ") " + str(ts))
                     else:
-                        hboutpath = os.path.join(job.config.MEDIA_DIR, str(job.title) + " " +str(ts))
+                        hboutpath = os.path.join(job.config.MEDIA_DIR, str(job.title) + " " + str(ts))
                 else:
                     ## No nice title, use the unidentified path
                     hboutpath = os.path.join(job.config.ARMPATH, str(job.title) + "_" + str(ts))
@@ -192,7 +224,6 @@ def main(logfile, job):
                 job.status = "fail"
                 db.session.commit()
                 sys.exit()
-
         logging.info("Processing files to: " + hboutpath)
 
         ## entry point for bluray or dvd with MAINFEATURE off and RIPMETHOD mkv
@@ -238,16 +269,16 @@ def main(logfile, job):
                         temp_path_largest = os.path.join(hbinpath, largest_file_name)
                         # os.path.join(cfg['MEDIA_DIR'] + videotitle)
                         # if cur file size > largest_file size
-                        if(os.stat(temp_path_f).st_size > os.stat(temp_path_largest).st_size):
+                        if (os.stat(temp_path_f).st_size > os.stat(temp_path_largest).st_size):
                             largest_file_name = f
                     # largest_file should be largest file
                     logging.debug("Largest file is: " + largest_file_name)
                     temp_path = os.path.join(hbinpath, largest_file_name)
-                    if(os.stat(temp_path).st_size > 0):  # sanity check for filesize
+                    if (os.stat(temp_path).st_size > 0):  # sanity check for filesize
                         for f in files:
                             # move main into media_dir
                             # move others into extras folder
-                            if(f == largest_file_name):
+                            if (f == largest_file_name):
                                 # largest movie
                                 # Encorporating Rajlaud's fix #349
                                 utils.move_files(hbinpath, f, job, True)
@@ -261,12 +292,14 @@ def main(logfile, job):
                     # Change final path (used to set permissions)
                     final_directory = os.path.join(job.config.MEDIA_DIR, str(job.title) + " (" + str(job.year) + ")")
                     # Clean up
+                    ## TODO: fix this so it doesnt remove everything
                     logging.debug("Attempting to remove extra folder in ARMPATH: " + hboutpath)
-                    try:
-                        shutil.rmtree(hboutpath)
-                        logging.debug("Removed sucessfully: " + hboutpath)
-                    except Exception:
-                        logging.debug("Failed to remove: " + hboutpath)
+                    if hboutpath != final_directory:
+                        try:
+                            shutil.rmtree(hboutpath)
+                            logging.debug("Removed sucessfully: " + hboutpath)
+                        except Exception:
+                            logging.debug("Failed to remove: " + hboutpath)
                 else:
                     # if videotype is not movie, then move everything
                     # into 'Unidentified' folder
@@ -278,7 +311,7 @@ def main(logfile, job):
                         shutil.move(mkvoutfile, hboutpath)
                 # remove raw files, if specified in config
                 if job.config.DELRAWFILES:
-                    logging.info("Removing raw files")
+                    logging.info("Removing raw files DELRAWFILES IS = " + str(job.config.DELRAWFILES))
                     shutil.rmtree(mkvoutpath)
                 # set file to default permissions '777'
                 if job.config.SET_MEDIA_PERMISSIONS:
@@ -286,6 +319,11 @@ def main(logfile, job):
                     logging.info("Permissions set successfully: " + str(perm_result))
                 utils.notify(job, "ARM notification", str(job.title) + " processing complete. ")
                 logging.info("ARM processing complete")
+                # WARN  : might cause issues
+                # We need to update our job before we quit
+                # It should be safe to do this as we arent waiting for transcode
+                job.status = "success"
+                db.session.commit()
                 # exit
                 sys.exit()
 
@@ -295,6 +333,7 @@ def main(logfile, job):
             handbrake.handbrake_mkv(hbinpath, hboutpath, logfile, job)
         elif job.disctype == "dvd" and (not job.config.MAINFEATURE and job.config.RIPMETHOD == "mkv"):
             handbrake.handbrake_mkv(hbinpath, hboutpath, logfile, job)
+            job.eject()
         elif job.video_type == "movie" and job.config.MAINFEATURE and job.hasnicetitle:
             handbrake.handbrake_mainfeature(hbinpath, hboutpath, logfile, job)
             job.eject()
@@ -337,11 +376,13 @@ def main(logfile, job):
             logging.info("Permissions set successfully: " + str(perm_result))
 
         # remove empty directories
-        try:
-            os.rmdir(hboutpath)
-        except OSError:
-            logging.info(hboutpath + " directory is not empty.  Skipping removal. ")
-            pass
+        ## Same issue of removing files that have already been identified
+        if hboutpath != final_directory:
+            try:
+                os.rmdir(hboutpath)
+            except OSError:
+                logging.info(hboutpath + " directory is not empty.  Skipping removal. ")
+                pass
 
         try:
             newpath
@@ -369,15 +410,19 @@ def main(logfile, job):
         if job.errors:
             errlist = ', '.join(job.errors)
             if job.config.NOTIFY_TRANSCODE:
-                utils.notify(job, "ARM notification", str(job.title) + " processing completed with errors. Title(s) " + str(errlist) + " failed to complete. ")
+                utils.notify(job, "ARM notification",
+                             str(job.title) + " processing completed with errors. Title(s) " + str(
+                                 errlist) + " failed to complete. ")
             logging.info("Transcoding completed with errors.  Title(s) " + str(errlist) + " failed to complete. ")
+            return
         else:
             if job.config.NOTIFY_TRANSCODE:
                 utils.notify(job, "ARM notification", str(job.title) + " processing complete. ")
+                job.status = "success"
+                db.session.commit()
             logging.info("ARM processing complete")
 
     elif job.disctype == "music":
-        ## TODO: make logfile use label if hasnicetitle
         if utils.rip_music(job, logfile):
             utils.notify(job, "ARM notification", "Music CD: " + str(job.label) + " processing complete. ")
             utils.scan_emby(job)
@@ -389,9 +434,9 @@ def main(logfile, job):
         datapath = os.path.join(job.config.ARMPATH, str(job.label))
         if (utils.make_dir(datapath)) is False:
             ts = str(round(time.time() * 100))
-            datapath = os.path.join(job.config.ARMPATH, str(job.label) + "_" + ts)
+            datapath = os.path.join(job.config.ARMPATH, str(job.label) + "_", ts)
 
-            if(utils.make_dir(datapath)) is False:
+            if (utils.make_dir(datapath)) is False:
                 logging.info("Could not create data directory: " + str(datapath) + ".  Exiting ARM. ")
                 sys.exit()
 
@@ -414,26 +459,17 @@ if __name__ == "__main__":
 
     job = Job(devpath)
 
-    ##Make the ARM dir if it doesnt exist
-    if not os.path.exists(cfg['ARMPATH']):
-        os.makedirs(cfg['ARMPATH'])
-    ##Make the RAW dir if it doesnt exist
-    if not os.path.exists(cfg['RAWPATH']):
-        os.makedirs(cfg['RAWPATH'])
-    ##Make the Media dir if it doesnt exist
-    if not os.path.exists(cfg['MEDIA_DIR']):
-        os.makedirs(cfg['MEDIA_DIR'])
-
     logfile = logger.setuplogging(job)
 
-    ## Dont put out anything if we are using the empty.log
-    if logfile.find("empty.log") == -1 :
-        logging.info("Log: " + logfile)
+    #  Dont put out anything if we are using the empty.log
+    # if logfile.find("empty.log") == -1:
+    #    logging.info("Log: " + logfile)
 
-    if utils.get_cdrom_status(devpath) != 4:
+    # If the drive isn't ready or our job is None exit - our job can only be None if we dont have a disc
+    if utils.get_cdrom_status(devpath) != 4 or job is None:
+        ## no nuns. no nuns. none.
         logging.info("Drive appears to be empty or is not ready.  Exiting ARM.")
         sys.exit()
-
 
     logging.info("Starting ARM processing at " + str(datetime.datetime.now()))
 
@@ -470,7 +506,8 @@ if __name__ == "__main__":
             if j.pid_hash == hash(p):
                 logging.info("Job #" + str(j.job_id) + " with PID " + str(j.pid) + " is currently running.")
         else:
-            logging.info("Job #" + str(j.job_id) + " with PID " + str(j.pid) + " has been abandoned.  Updating job status to fail.")
+            logging.info("Job #" + str(j.job_id) + " with PID " + str(
+                j.pid) + " has been abandoned.  Updating job status to fail.")
             j.status = "fail"
             db.session.commit()
 
@@ -480,7 +517,8 @@ if __name__ == "__main__":
         main(logfile, job)
     except Exception as e:
         logging.exception("A fatal error has occured and ARM is exiting.  See traceback below for details.")
-        utils.notify(job, "ARM notification", "ARM encountered a fatal error processing " + str(job.title) + ". Check the logs for more details. " + str(e))
+        utils.notify(job, "ARM notification", "ARM encountered a fatal error processing " + str(
+            job.title) + ". Check the logs for more details. " + str(e))
         job.status = "fail"
         job.eject()
     else:

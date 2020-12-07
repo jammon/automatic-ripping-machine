@@ -19,9 +19,21 @@ from arm.models.models import Track  # noqa: E402
 
 
 def notify(job, title, body):
-    # Send notificaions
-    # title = title for notification
-    # body = body of the notification
+    """"
+    Send notifications
+
+    arguments:
+    job = our job object
+    body = body of the notification
+    title = title for notification
+
+    return:
+    nothing
+
+    Notes = this needs re-written to be smaller and more modular
+    """
+    # Need to add a user select for this
+    desktop_notify(title,body)
 
     ## Pushbullet
     ## pbul://{accesstoken}
@@ -59,7 +71,6 @@ def notify(job, title, body):
     ## discord
     ## discord://{WebhookID}/{WebhookToken}/
     if job.config.DISCORD_WEBHOOK_ID != "":
-        ## TODO: add userid to this and config
         try:
             # Create an Apprise instance
             apobj = apprise.Apprise()
@@ -209,7 +220,8 @@ def notify(job, title, body):
             apobj = apprise.Apprise()
             # check if we have login details, if so use them
             if job.config.KODI_USER != "":
-                apobj.add('kodi://' + str(job.config.KODI_USER) + ":" + str(job.config.KODI_PASS) + "@" + str(job.config.KODI_HOST) + ":" + str(job.config.KODI_PORT))
+                apobj.add('kodi://' + str(job.config.KODI_USER) + ":" + str(job.config.KODI_PASS) + "@" + str(
+                    job.config.KODI_HOST) + ":" + str(job.config.KODI_PORT))
             else:
                 if job.config.KODI_PORT != "":
                     ## we need to check if they are using secure or this will fail
@@ -270,7 +282,8 @@ def notify(job, title, body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
             # A sample pushbullet notification
-            apobj.add('mailgun://' + str(job.config.MAILGUN_USER) + "@" + str(job.config.MAILGUN_DOMAIN) + "/" + str(job.config.MAILGUN_APIKEY))
+            apobj.add('mailgun://' + str(job.config.MAILGUN_USER) + "@" + str(job.config.MAILGUN_DOMAIN) + "/" + str(
+                job.config.MAILGUN_APIKEY))
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -286,7 +299,8 @@ def notify(job, title, body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
             if job.config.MATRIX_HOST != "":
-                apobj.add('matrixs://' + str(job.config.MATRIX_USER) + ":" + str(job.config.MATRIX_PASS) + "@" + str(job.config.MATRIX_HOST))  # + "/#general/#apprise")
+                apobj.add('matrixs://' + str(job.config.MATRIX_USER) + ":" + str(job.config.MATRIX_PASS) + "@" + str(
+                    job.config.MATRIX_HOST))  # + "/#general/#apprise")
             else:
                 apobj.add('matrix://' + str(job.config.MATRIX_TOKEN))
             # Then notify these services any time you desire. The below would
@@ -304,7 +318,8 @@ def notify(job, title, body):
             apobj = apprise.Apprise()
 
             # msteams://{tokenA}/{tokenB}/{tokenC}/
-            apobj.add('msteams://' + str(job.config.MSTEAMS_TOKENA) + "/" + str(job.config.MSTEAMS_TOKENB) + "/" + str(job.config.MSTEAMS_TOKENC) + "/")
+            apobj.add('msteams://' + str(job.config.MSTEAMS_TOKENA) + "/" + str(job.config.MSTEAMS_TOKENB) + "/" + str(
+                job.config.MSTEAMS_TOKENC) + "/")
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -320,7 +335,9 @@ def notify(job, title, body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
 
-            apobj.add('nclouds://' + str(job.config.NEXTCLOUD_ADMINUSER) + ":" + str(job.config.NEXTCLOUD_ADMINPASS) + "@" + str(job.config.NEXTCLOUD_HOST) + "/" + str(job.config.NEXTCLOUD_NOTIFY_USER))
+            apobj.add('nclouds://' + str(job.config.NEXTCLOUD_ADMINUSER) + ":" + str(
+                job.config.NEXTCLOUD_ADMINPASS) + "@" + str(job.config.NEXTCLOUD_HOST) + "/" + str(
+                job.config.NEXTCLOUD_NOTIFY_USER))
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -371,7 +388,9 @@ def notify(job, title, body):
             # o365://{tenant_id}:{account_email}/{client_id}/{client_secret}/
             # TODO: we might need to escape/encode the client_secret
             # Replace ? with %3F and  @ with %40
-            apobj.add('o365://' + str(job.config.OFFICE365_TENANTID) + ":" + str(job.config.OFFICE365_ACCOUNTEMAIL) + "/" + str(job.config.OFFICE365_CLIENT_ID) + "/" + str(job.config.OFFICE365_CLIENT_SECRET))
+            apobj.add('o365://' + str(job.config.OFFICE365_TENANTID) + ":" + str(
+                job.config.OFFICE365_ACCOUNTEMAIL) + "/" + str(job.config.OFFICE365_CLIENT_ID) + "/" + str(
+                job.config.OFFICE365_CLIENT_SECRET))
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -562,7 +581,8 @@ def notify(job, title, body):
         try:
             # Create an Apprise instance
             apobj = apprise.Apprise()
-            apobj.add('slack://' + str(job.config.SLACK_TOKENA) + "/" + str(job.config.SLACK_TOKENB) + "/" + str(job.config.SLACK_TOKENC) + "/" + str(job.config.SLACK_CHANNEL))
+            apobj.add('slack://' + str(job.config.SLACK_TOKENA) + "/" + str(job.config.SLACK_TOKENB) + "/" + str(
+                job.config.SLACK_TOKENC) + "/" + str(job.config.SLACK_CHANNEL))
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
             apobj.notify(
@@ -577,7 +597,9 @@ def notify(job, title, body):
         try:
             # Create an Apprise instance
             apobj = apprise.Apprise()
-            apobj.add('sparkpost://' + str(job.config.SPARKPOST_USER) + "@" + str(job.config.SPARKPOST_HOST) + "/" + str(job.config.SPARKPOST_API) + "/" + str(job.config.SPARKPOST_EMAIL))
+            apobj.add(
+                'sparkpost://' + str(job.config.SPARKPOST_USER) + "@" + str(job.config.SPARKPOST_HOST) + "/" + str(
+                    job.config.SPARKPOST_API) + "/" + str(job.config.SPARKPOST_EMAIL))
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
             apobj.notify(
@@ -641,7 +663,8 @@ def notify(job, title, body):
             apobj = apprise.Apprise()
             ## if we get user we use the username and pass
             if job.config.XBMC_USER != "":
-                apobj.add('xbmc://' + str(job.config.XBMC_USER) + ":" + str(job.config.XBMC_PASS) + "@" + str(job.config.XBMC_HOST) + ":" + str(job.config.XBMC_PORT))
+                apobj.add('xbmc://' + str(job.config.XBMC_USER) + ":" + str(job.config.XBMC_PASS) + "@" + str(
+                    job.config.XBMC_HOST) + ":" + str(job.config.XBMC_PORT))
             else:
                 apobj.add('xbmc://' + str(job.config.XBMC_HOST) + ":" + str(job.config.XBMC_PORT))
             # Then notify these services any time you desire. The below would
@@ -661,7 +684,8 @@ def notify(job, title, body):
             ## Is the user var filled
             if job.config.XMPP_USER != "":
                 # xmpps://{userid}:{password}@{hostname}
-                apobj.add('xmpps://' + str(job.config.XMPP_USER) + ":" + str(job.config.XMPP_PASS) + "@" + str(job.config.XMPP_HOST))
+                apobj.add('xmpps://' + str(job.config.XMPP_USER) + ":" + str(job.config.XMPP_PASS) + "@" + str(
+                    job.config.XMPP_HOST))
             else:
                 # xmpp: // {password} @ {hostname}: {port}
                 apobj.add('xmpp://' + str(job.config.XMPP_PASS) + "@" + str(job.config.XMPP_HOST))
@@ -696,7 +720,9 @@ def notify(job, title, body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
 
-            apobj.add('zulip://' + str(job.config.ZILUP_CHAT_BOTNAME) + "@" + str(job.config.ZILUP_CHAT_ORG) + "/" + str(job.config.ZILUP_CHAT_TOKEN))
+            apobj.add(
+                'zulip://' + str(job.config.ZILUP_CHAT_BOTNAME) + "@" + str(job.config.ZILUP_CHAT_ORG) + "/" + str(
+                    job.config.ZILUP_CHAT_TOKEN))
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
             apobj.notify(
@@ -707,7 +733,18 @@ def notify(job, title, body):
             logging.error("Failed sending Zulip apprise notification.  continuing  processing...")
 
 
-def apprise_notify(title,body):
+def apprise_notify(title, body):
+
+    """
+        Function to only trigger the new apprise notifications
+
+        arguments:
+        title - the title for the notification
+        body - the body for the notification
+
+        returns:
+        nothing
+    """
     ############# APPRISE NOTIFICATIONS############
     ## boxcar
     ## boxcar://{access_key}/{secret_key}
@@ -763,7 +800,7 @@ def apprise_notify(title,body):
             logging.error("Failed sending faast apprise notification.  Continueing processing...")
     ## FLOCK
     ## flock://{token}/
-    if cfg['FLOCK_TOKEN']!= "":
+    if cfg['FLOCK_TOKEN'] != "":
         try:
             # Create an Apprise instance
             apobj = apprise.Apprise()
@@ -862,7 +899,8 @@ def apprise_notify(title,body):
             apobj = apprise.Apprise()
             # check if we have login details, if so use them
             if job.config.KODI_USER != "":
-                apobj.add('kodi://' + str(job.config.KODI_USER) + ":" + str(job.config.KODI_PASS) + "@" + str(job.config.KODI_HOST) + ":" + str(job.config.KODI_PORT))
+                apobj.add('kodi://' + str(job.config.KODI_USER) + ":" + str(job.config.KODI_PASS) + "@" + str(
+                    job.config.KODI_HOST) + ":" + str(job.config.KODI_PORT))
             else:
                 if job.config.KODI_PORT != "":
                     ## we need to check if they are using secure or this will fail
@@ -923,7 +961,8 @@ def apprise_notify(title,body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
             # A sample pushbullet notification
-            apobj.add('mailgun://' + str(job.config.MAILGUN_USER) + "@" + str(job.config.MAILGUN_DOMAIN) + "/" + str(job.config.MAILGUN_APIKEY))
+            apobj.add('mailgun://' + str(job.config.MAILGUN_USER) + "@" + str(job.config.MAILGUN_DOMAIN) + "/" + str(
+                job.config.MAILGUN_APIKEY))
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -939,7 +978,8 @@ def apprise_notify(title,body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
             if job.config.MATRIX_HOST != "":
-                apobj.add('matrixs://' + str(job.config.MATRIX_USER) + ":" + str(job.config.MATRIX_PASS) + "@" + str(job.config.MATRIX_HOST))  # + "/#general/#apprise")
+                apobj.add('matrixs://' + str(job.config.MATRIX_USER) + ":" + str(job.config.MATRIX_PASS) + "@" + str(
+                    job.config.MATRIX_HOST))  # + "/#general/#apprise")
             else:
                 apobj.add('matrix://' + str(job.config.MATRIX_TOKEN))
             # Then notify these services any time you desire. The below would
@@ -957,7 +997,8 @@ def apprise_notify(title,body):
             apobj = apprise.Apprise()
 
             # msteams://{tokenA}/{tokenB}/{tokenC}/
-            apobj.add('msteams://' + str(job.config.MSTEAMS_TOKENA) + "/" + str(job.config.MSTEAMS_TOKENB) + "/" + str(job.config.MSTEAMS_TOKENC) + "/")
+            apobj.add('msteams://' + str(job.config.MSTEAMS_TOKENA) + "/" + str(job.config.MSTEAMS_TOKENB) + "/" + str(
+                job.config.MSTEAMS_TOKENC) + "/")
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -973,7 +1014,9 @@ def apprise_notify(title,body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
 
-            apobj.add('nclouds://' + str(job.config.NEXTCLOUD_ADMINUSER) + ":" + str(job.config.NEXTCLOUD_ADMINPASS) + "@" + str(job.config.NEXTCLOUD_HOST) + "/" + str(job.config.NEXTCLOUD_NOTIFY_USER))
+            apobj.add('nclouds://' + str(job.config.NEXTCLOUD_ADMINUSER) + ":" + str(
+                job.config.NEXTCLOUD_ADMINPASS) + "@" + str(job.config.NEXTCLOUD_HOST) + "/" + str(
+                job.config.NEXTCLOUD_NOTIFY_USER))
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -1024,7 +1067,9 @@ def apprise_notify(title,body):
             # o365://{tenant_id}:{account_email}/{client_id}/{client_secret}/
             # TODO: we might need to escape/encode the client_secret
             # Replace ? with %3F and  @ with %40
-            apobj.add('o365://' + str(job.config.OFFICE365_TENANTID) + ":" + str(job.config.OFFICE365_ACCOUNTEMAIL) + "/" + str(job.config.OFFICE365_CLIENT_ID) + "/" + str(job.config.OFFICE365_CLIENT_SECRET))
+            apobj.add('o365://' + str(job.config.OFFICE365_TENANTID) + ":" + str(
+                job.config.OFFICE365_ACCOUNTEMAIL) + "/" + str(job.config.OFFICE365_CLIENT_ID) + "/" + str(
+                job.config.OFFICE365_CLIENT_SECRET))
 
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
@@ -1200,7 +1245,8 @@ def apprise_notify(title,body):
         try:
             # Create an Apprise instance
             apobj = apprise.Apprise()
-            apobj.add('slack://' + str(job.config.SLACK_TOKENA) + "/" + str(job.config.SLACK_TOKENB) + "/" + str(job.config.SLACK_TOKENC) + "/" + str(job.config.SLACK_CHANNEL))
+            apobj.add('slack://' + str(job.config.SLACK_TOKENA) + "/" + str(job.config.SLACK_TOKENB) + "/" + str(
+                job.config.SLACK_TOKENC) + "/#" + str(job.config.SLACK_CHANNEL))
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
             apobj.notify(
@@ -1215,7 +1261,9 @@ def apprise_notify(title,body):
         try:
             # Create an Apprise instance
             apobj = apprise.Apprise()
-            apobj.add('sparkpost://' + str(job.config.SPARKPOST_USER) + "@" + str(job.config.SPARKPOST_HOST) + "/" + str(job.config.SPARKPOST_API) + "/" + str(job.config.SPARKPOST_EMAIL))
+            apobj.add(
+                'sparkpost://' + str(job.config.SPARKPOST_USER) + "@" + str(job.config.SPARKPOST_HOST) + "/" + str(
+                    job.config.SPARKPOST_API) + "/" + str(job.config.SPARKPOST_EMAIL))
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
             apobj.notify(
@@ -1279,7 +1327,8 @@ def apprise_notify(title,body):
             apobj = apprise.Apprise()
             ## if we get user we use the username and pass
             if job.config.XBMC_USER != "":
-                apobj.add('xbmc://' + str(job.config.XBMC_USER) + ":" + str(job.config.XBMC_PASS) + "@" + str(job.config.XBMC_HOST) + ":" + str(job.config.XBMC_PORT))
+                apobj.add('xbmc://' + str(job.config.XBMC_USER) + ":" + str(job.config.XBMC_PASS) + "@" + str(
+                    job.config.XBMC_HOST) + ":" + str(job.config.XBMC_PORT))
             else:
                 apobj.add('xbmc://' + str(job.config.XBMC_HOST) + ":" + str(job.config.XBMC_PORT))
             # Then notify these services any time you desire. The below would
@@ -1299,7 +1348,8 @@ def apprise_notify(title,body):
             ## Is the user var filled
             if job.config.XMPP_USER != "":
                 # xmpps://{userid}:{password}@{hostname}
-                apobj.add('xmpps://' + str(job.config.XMPP_USER) + ":" + str(job.config.XMPP_PASS) + "@" + str(job.config.XMPP_HOST))
+                apobj.add('xmpps://' + str(job.config.XMPP_USER) + ":" + str(job.config.XMPP_PASS) + "@" + str(
+                    job.config.XMPP_HOST))
             else:
                 # xmpp: // {password} @ {hostname}: {port}
                 apobj.add('xmpp://' + str(job.config.XMPP_PASS) + "@" + str(job.config.XMPP_HOST))
@@ -1334,7 +1384,9 @@ def apprise_notify(title,body):
             # Create an Apprise instance
             apobj = apprise.Apprise()
 
-            apobj.add('zulip://' + str(job.config.ZILUP_CHAT_BOTNAME) + "@" + str(job.config.ZILUP_CHAT_ORG) + "/" + str(job.config.ZILUP_CHAT_TOKEN))
+            apobj.add(
+                'zulip://' + str(job.config.ZILUP_CHAT_BOTNAME) + "@" + str(job.config.ZILUP_CHAT_ORG) + "/" + str(
+                    job.config.ZILUP_CHAT_TOKEN))
             # Then notify these services any time you desire. The below would
             # notify all of the services loaded into our Apprise object.
             apobj.notify(
@@ -1344,6 +1396,47 @@ def apprise_notify(title,body):
         except:  # noqa: E722
             logging.error("Failed sending Zulip apprise notification.  continuing  processing...")
 
+def desktop_notify(title, body):
+    """
+        function to trigger desktop notifications
+
+        arguments:
+        title - the title for the notification
+        body - the body for the notification
+
+        returns:
+        nothing
+    """
+    ################### Lets try the desktop notifications first ###############################
+    cmd = "apprise -vv -t \"{0}\" -b \"{1}\" dbus://".format(title, body)
+    cmd1 = "apprise -vv -t \"{0}\" -b \"{1}\" kde://".format(title, body)
+    cmd2 = "apprise -vv -t \"{0}\" -b \"{1}\" gnome://".format(title, body)
+    cmd3 = "apprise -vv -t \"{0}\" -b \"{1}\" windows://".format(title, body)
+    #############################################################################################
+    try:
+        logging.debug("Trying ##########" + cmd)
+        os.system(cmd)
+        # subprocess.call(cmd)
+    except Exception as e:  # noqa: E722
+        logging.error("Failed sending desktops apprise notification. ################ " + str(e))
+    try:
+        logging.debug("Trying ##########" + cmd1)
+        os.system(cmd1)
+        # subprocess.call(cmd)
+    except Exception as e:  # noqa: E722
+        logging.error("Failed sending desktops apprise notification. ################ " + str(e))
+    try:
+        logging.debug("Trying ##########" + cmd2)
+        os.system(cmd2)
+        # subprocess.call(cmd)
+    except Exception as e:  # noqa: E722
+        logging.error("Failed sending desktops apprise notification. ################ " + str(e))
+    try:
+        logging.debug("Trying ##########" + cmd3)
+        os.system(cmd3)
+        # subprocess.call(cmd)
+    except Exception as e:  # noqa: E722
+        logging.error("Failed sending desktops apprise notification. ################ " + str(e))
 
 
 def scan_emby(job):
@@ -1380,11 +1473,15 @@ def SleepCheckProcess(ProcessStr, Proc_Count):
 
 
 def move_files(basepath, filename, job, ismainfeature=False):
-    """Move files into final media directory\n
+    """
+    Move files into final media directory\n
+
     basepath = path to source directory\n
     filename = name of file to be moved\n
     job = instance of Job class\n
-    ismainfeature = True/False"""
+    ismainfeature = True/False
+
+    """
 
     logging.debug("Moving files: " + str(job))
 
@@ -1397,10 +1494,13 @@ def move_files(basepath, filename, job, ismainfeature=False):
 
     videotitle = job.title + " (" + str(job.year) + ")"
 
-    logging.debug("Arguments: " + basepath + " : " + filename + " : " + str(hasnicetitle) + " : " + videotitle + " : " + str(ismainfeature))
+    logging.debug(
+        "Arguments: " + basepath + " : " + filename + " : " + str(hasnicetitle) + " : " + videotitle + " : " + str(
+            ismainfeature))
 
     if hasnicetitle:
-        m_path = os.path.join(job.config.MEDIA_DIR + videotitle)
+        # join was used wrong here ?
+        m_path = os.path.join(job.config.MEDIA_DIR, videotitle)
 
         if not os.path.exists(m_path):
             logging.info("Creating base title directory: " + m_path)
@@ -1464,7 +1564,8 @@ def rename_files(oldpath, job):
     # other than putting in an error message, I'm not sure how to perminently fix this problem.
     # Maybe I could add a configurable option for deletion of crashed job files?
     if os.path.isdir(newpath):
-        logging.info("Error: The 'new' directory already exists, ARM will probably copy the newly ripped folder into the old-new folder.")
+        logging.info(
+            "Error: The 'new' directory already exists, ARM will probably copy the newly ripped folder into the old-new folder.")
 
     try:
         shutil.move(oldpath, newpath)
@@ -1478,7 +1579,7 @@ def rename_files(oldpath, job):
 
 def make_dir(path):
     """
-Make a directory\n
+    Make a directory\n
     path = Path to directory\n
 
     returns success True if successful
@@ -1625,6 +1726,16 @@ def rip_data(job, datapath, logfile):
 
 
 def set_permissions(job, directory_to_traverse):
+    """
+        Try to set our permissions if the user requested it
+
+        arguments:
+        job - our full job obj
+        directory_to_traverse  - the path to set permissions
+
+        returns:
+        True or false if we set perms or not
+    """
     try:
         corrected_chmod_value = int(str(job.config.CHMOD_VALUE), 8)
         logging.info("Setting permissions to: " + str(job.config.CHMOD_VALUE) + " on: " + directory_to_traverse)
@@ -1685,7 +1796,8 @@ def check_db_version(install_path, db_file):
     if head_revision == db_version:
         logging.info("Database is up to date")
     else:
-        logging.info("Database out of date. Head is " + head_revision + " and database is " + db_version + ".  Upgrading database...")
+        logging.info(
+            "Database out of date. Head is " + head_revision + " and database is " + db_version + ".  Upgrading database...")
         with app.app_context():
             ts = round(time.time() * 100)
             logging.info("Backuping up database '" + db_file + "' to '" + db_file + str(ts) + "'.")
@@ -1699,7 +1811,8 @@ def check_db_version(install_path, db_file):
         if head_revision == db_version:
             logging.info("Database is now up to date")
         else:
-            logging.error("Database is still out of date. Head is " + head_revision + " and database is " + db_version + ".  Exiting arm.")
+            logging.error(
+                "Database is still out of date. Head is " + head_revision + " and database is " + db_version + ".  Exiting arm.")
             sys.exit()
 
 
@@ -1718,7 +1831,8 @@ def put_track(job, t_no, seconds, aspect, fps, mainfeature, source, filename="")
     filename = filename of track\n
     """
 
-    logging.debug("Track #" + str(t_no) + " Length: " + str(seconds) + " fps: " + str(fps) + " aspect: " + str(aspect) + " Mainfeature: " +
+    logging.debug("Track #" + str(t_no) + " Length: " + str(seconds) + " fps: " + str(fps) + " aspect: " + str(
+        aspect) + " Mainfeature: " +
                   str(mainfeature) + " Source: " + source)
 
     t = Track(

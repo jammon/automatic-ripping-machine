@@ -7,9 +7,15 @@ import time
 from arm.config.config import cfg
 from arm.ripper import getmusictitle
 
+
 def setuplogging(job):
-    """Setup logging and return the path to the logfile for
-    redirection of external calls"""
+    """
+        Setup logging and return the path to the logfile for
+        redirection of external calls
+
+        Note:
+        Any logging calls before this will break the logging!
+    """
 
     ##Make the log dir if it doesnt exist
     if not os.path.exists(cfg['LOGPATH']):
@@ -23,7 +29,7 @@ def setuplogging(job):
             title = getmusictitle.gettitle(discid, job)
             if title != "not identified":
                 logfile1 = str(title) + ".log"
-                logfile =  logfile1.replace(" ", "_")
+                logfile = logfile1.replace(" ", "_")
             else:
                 job.title = "not identified"
                 job.label = "not identified"
@@ -31,23 +37,25 @@ def setuplogging(job):
                 logfile = "music_cd.log"
         else:
             logfile = "empty.log"
-        #set a logfull for empty.log and music_cd.log
+        # set a logfull for empty.log and music_cd.log
         logfull = cfg['LOGPATH'] + logfile if cfg['LOGPATH'][-1:] == "/" else cfg['LOGPATH'] + "/" + logfile
     else:
         logfile = job.label + ".log"
         if cfg['LOGPATH'][-1:] == "/":
             ##This really needs to be cleaned up, but it works for now
-            #Check to see if file already exists, if so, create a new file
-            newlogfile =  str(job.label) + "_" + str(round(time.time() * 100)) + ".log"
+            # Check to see if file already exists, if so, create a new file
+            newlogfile = str(job.label) + "_" + str(round(time.time() * 100)) + ".log"
             TmpLogFull = cfg['LOGPATH'] + logfile
             logfile = newlogfile if os.path.isfile(TmpLogFull) else logfile
-            logfull = cfg['LOGPATH'] + newlogfile if os.path.isfile(TmpLogFull) else cfg['LOGPATH']  + str(job.label) + ".log"
+            logfull = cfg['LOGPATH'] + newlogfile if os.path.isfile(TmpLogFull) else cfg['LOGPATH'] + str(
+                job.label) + ".log"
         else:
-            #Check to see if file already exists, if so, create a new file
-            newlogfile =  str(job.label) + "_" + str(round(time.time() * 100)) + ".log"
+            # Check to see if file already exists, if so, create a new file
+            newlogfile = str(job.label) + "_" + str(round(time.time() * 100)) + ".log"
             TmpLogFull = cfg['LOGPATH'] + "/" + logfile
             logfile = newlogfile if os.path.isfile(TmpLogFull) else str(job.label)
-            logfull = cfg['LOGPATH'] + "/" + newlogfile if os.path.isfile(TmpLogFull) else cfg['LOGPATH'] + "/" + str(job.label) + ".log"
+            logfull = cfg['LOGPATH'] + "/" + newlogfile if os.path.isfile(TmpLogFull) else cfg['LOGPATH'] + "/" + str(
+                job.label) + ".log"
 
         ## We need to give the logfile only to database
         job.logfile = logfile
@@ -55,7 +63,8 @@ def setuplogging(job):
     ## Debug formatting
     if cfg['LOGLEVEL'] == "DEBUG":
         ## TODO: make secret keys safe
-        logging.basicConfig(filename=logfull, format='[%(asctime)s] %(levelname)s ARM: %(module)s.%(funcName)s %(message)s',
+        logging.basicConfig(filename=logfull,
+                            format='[%(asctime)s] %(levelname)s ARM: %(module)s.%(funcName)s %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S', level=cfg['LOGLEVEL'])
     else:
         logging.basicConfig(filename=logfull, format='[%(asctime)s] %(levelname)s ARM: %(message)s',
@@ -71,7 +80,7 @@ def cleanuplogs(logpath, loglife):
     loglife = days to let logs live\n
 
     """
-    if loglife <1:
+    if loglife < 1:
         logging.info("loglife is set to 0. Removal of logs is disabled")
         return False
     now = time.time()

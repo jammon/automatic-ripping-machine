@@ -214,7 +214,7 @@ def handbrake_mkv(srcpath, basepath, logfile, job):
 
         logging.info("Transcoding file " + shlex.quote(f) + " to " + shlex.quote(filepathname))
 
-        cmd = 'nice {0} -i {1} -o {2} --preset "{3}" {4}>> {5} 2>&1'.format(
+        cmd = 'nice {0} -i {1} -o {2} --preset "{3}" {4} -e qsv_h265  >> {5} 2>&1'.format(
             job.config.HANDBRAKE_CLI,
             shlex.quote(srcpathname),
             shlex.quote(filepathname),
