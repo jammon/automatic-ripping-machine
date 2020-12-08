@@ -48,4 +48,7 @@ sudo make --directory=build install
 sudo apt update
 sudo apt upgrade
 
+sudo usermod -a -G video arm 
+sudo usermod -a -G render arm
+
 echo "You should reboot!"
