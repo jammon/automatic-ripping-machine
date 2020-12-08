@@ -63,7 +63,7 @@ def handbrake_mainfeature(srcpath, basepath, logfile, job):
         hb_args = job.config.HB_ARGS_BD
         hb_preset = job.config.HB_PRESET_BD
 
-    cmd = 'nice {0} -i {1} -o {2} --main-feature --preset "{3}" {4} >> {5} 2>&1'.format(
+    cmd = 'nice {0} -i {1} -o {2} --main-feature -e qsv_h265 --preset "{3}" {4} >> {5} 2>&1'.format(
         job.config.HANDBRAKE_CLI,
         shlex.quote(srcpath),
         shlex.quote(filepathname),
@@ -147,7 +147,7 @@ def handbrake_all(srcpath, basepath, logfile, job):
             track.filename = track.orig_filename = filename
             db.session.commit()
 
-            cmd = 'nice {0} -i {1} -o {2} --preset "{3}" -t {4} {5}>> {6} 2>&1'.format(
+            cmd = 'nice {0} -i {1} -o {2} -e qsv_h265 --preset "{3}" -t {4} {5}>> {6} 2>&1'.format(
                 job.config.HANDBRAKE_CLI,
                 shlex.quote(srcpath),
                 shlex.quote(filepathname),
@@ -214,7 +214,7 @@ def handbrake_mkv(srcpath, basepath, logfile, job):
 
         logging.info("Transcoding file " + shlex.quote(f) + " to " + shlex.quote(filepathname))
 
-        cmd = 'nice {0} -i {1} -o {2} --preset "{3}" {4} -e qsv_h265  >> {5} 2>&1'.format(
+        cmd = 'nice {0} -i {1} -o {2} -e qsv_h265 --preset "{3}" {4} -e qsv_h265  >> {5} 2>&1'.format(
             job.config.HANDBRAKE_CLI,
             shlex.quote(srcpathname),
             shlex.quote(filepathname),
