@@ -1,22 +1,5 @@
 # Automatic Ripping Machine (ARM)
 
-[![Build Status](https://travis-ci.org/automatic-ripping-machine/automatic-ripping-machine.svg?branch=v2_master)](https://travis-ci.org/automatic-ripping-machine/automatic-ripping-machine)
-
-## Upgrading from v2_master to v2.2_dev
-
-If you wish to upgrade from v2_master to v2.2_dev instead of a clean install, these directions should get you there.  
-
-```bash
-cd /opt/arm
-sudo git checkout v2.2_dev
-sudo pip3 install -r requirements.txt
-```
-Backup config file and replace it with the updated config
-```bash
-mv arm.yaml arm.yaml.old
-cp docs/arm.yaml.sample arm.yaml
-```
-
 There are new config parameters so review the new arm.yaml file
 
 Make sure the 'arm' user has write permissions to the db directory (see your arm.yaml file for locaton). is writeable by the arm user.  A db will be created when you first run ARM.
@@ -82,78 +65,29 @@ sudo regionset /dev/sr0
 
 ## Install
 
-**Setup 'arm' user and ubuntu basics:**
+**Please use the setup script for Ubuntu **
+**This MUST be run as root!**
+ ```
+ apt install wget
+ wget https://raw.githubusercontent.com/1337-server/automatic-ripping-machine/v2.2_dev_ubuntu/scripts/ubuntu-20.04-install.sh
+ chmod +x ubuntu-20.04-install.sh
+ ./ubuntu-20.04-install.sh
+ ```
+ ```reboot``` 
+ to complete installation.
 
-Sets up graphics drivers, does Ubuntu update & Upgrade, gets Ubuntu to auto set up driver, and finally installs and setups up avahi-daemon
-```bash
-sudo apt upgrade -y && sudo apt update -y 
-***optional (was not required for me): sudo add-apt-repository ppa:graphics-drivers/ppa
-sudo apt install avahi-daemon -y && sudo systemctl restart avahi-daemon
-sudo apt install ubuntu-drivers-common -y && sudo ubuntu-drivers install 
-sudo reboot
-# Installation of drivers seems to install a full gnome desktop, and it seems to set up hibernation modes.
-# It is optional to run the below line (Hibernation may be something you want.)
-	sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
-sudo groupadd arm
-sudo useradd -m arm -g arm -G cdrom
-sudo passwd arm 
-  <enter new password>
-```
+## Intel QuickSync support 
+I have added Intel QSV support for this branch only, Dont use this branch unless you want Intel quicksync for HandBrake 
+**This MUST be run as root!**
+ ```
+ apt install wget
+ wget https://raw.githubusercontent.com/1337-server/automatic-ripping-machine/v2.2_dev_ubuntu/scripts/ubuntu-quicksync.sh
+ chmod +x ubuntu-quicksync.sh
+ ./ubuntu-quicksync.sh
+ ```
+ ```reboot``` 
+ to complete installation.
 
-**Set up repos and install dependencies**
-
-```bash
-sudo apt-get install git -y
-sudo add-apt-repository ppa:heyarje/makemkv-beta
-sudo add-apt-repository ppa:stebbins/handbrake-releases
-
-NumOnly=$(cut -f2 <<< `lsb_release -r`) && case $NumOnly in "16.04" ) sudo add-apt-repository ppa:mc3man/xerus-media;; "18.04" ) sudo add-apt-repository ppa:mc3man/bionic-prop;; "20.04" ) sudo add-apt-repository ppa:mc3man/focal6;; *) echo "error in finding release version";; esac
-
-sudo apt update -y && \
-sudo apt install makemkv-bin makemkv-oss -y && \
-sudo apt install handbrake-cli libavcodec-extra -y && \
-sudo apt install abcde flac imagemagick glyrc cdparanoia -y && \
-sudo apt install at -y && \
-sudo apt install python3 python3-pip -y && \
-sudo apt-get install libcurl4-openssl-dev libssl-dev -y && \
-sudo apt-get install libdvd-pkg -y && \
-sudo dpkg-reconfigure libdvd-pkg && \
-sudo apt install default-jre-headless -y
-```
-
-**Install and setup ARM**
-
-```bash
-cd /opt
-sudo mkdir arm
-sudo chown arm:arm arm
-sudo chmod 775 arm
-sudo git clone https://github.com/automatic-ripping-machine/automatic-ripping-machine.git arm
-sudo chown -R arm:arm arm
-cd arm
-sudo pip3 install -r requirements.txt 
-sudo cp /opt/arm/setup/51-automedia.rules /etc/udev/rules.d/
-sudo ln -s /opt/arm/setup/.abcde.conf /home/arm/
-sudo cp docs/arm.yaml.sample arm.yaml
-sudo mkdir /etc/arm/
-sudo ln -s /opt/arm/arm.yaml /etc/arm/
-```
-
-**Set up drives**
-
-  Create mount point for each dvd drive.
-  If you don't know the device name try running `dmesg | grep -i -E '\b(dvd|cd)\b'`.  The mountpoint needs to be /mnt/dev/<device name>.
-  So if your device name is `sr0`, set the mountpoint with this command:
-  ```bash
-  sudo mkdir -p /mnt/dev/sr0
-  ```
-  Repeat this for each device you plan on using with ARM.
-
-  Create entries in /etc/fstab to allow non-root to mount dvd-roms
-  Example (create for each optical drive you plan on using for ARM):
-  ```
-  /dev/sr0  /mnt/dev/sr0  udf,iso9660  user,noauto,exec,utf8  0  0
-  ```
 
 **Configure ARM**
 
@@ -170,72 +104,11 @@ sudo ln -s /opt/arm/arm.yaml /etc/arm/
 After setup is complete reboot...
     
     reboot
-
-Optionally if you want something more stable than master you can download the latest release from the releases page.
-
-**Email notifcations**
-
-A lot of random problems are found in the sysmail, email alerting is a most effective method for debugging and monitoring.
-
-I recommend you install postfix from here:http://mhawthorne.net/posts/2011-postfix-configuring-gmail-as-relay/
-
-Then configure /etc/aliases 
-	e.g.: 
-	
-	```	
-	root: my_email@gmail.com
-	arm: my_email@gmail.com
-	userAccount: my_email@gmail.com
-	```
-	
-Run below to pick up the aliases
-
-	```
-	sudo newaliases
-	```
-
-## Alternative Auto Install Script For OpenMediaVault/Debian
-**This MUST be run as root!**
-**For the attended install use:**
- ```
- apt install wget
- wget https://raw.githubusercontent.com/1337-server/automatic-ripping-machine/v2.2_dev/scripts/debian-setup.sh
- chmod +x debian-setup.sh
- ./debian-setup.sh
- ```
- ```reboot``` 
- to complete installation.
- 
- 
- **For the silent install use**
-  ```
- apt -qqy install wget
- wget https://raw.githubusercontent.com/1337-server/automatic-ripping-machine/v2.2_dev/scripts/deb-install-quiet.sh
- chmod +x deb-install-quiet.sh
- ./deb-install-quiet.sh
- ```
-```reboot``` 
- to complete installation.
- 
  
  **Details about this script**
  
  The script installs all dependencies, a service for the ARMui and the fstab entry for sr0, if you have more than one drive you will need to make the mount folder and insert any additional fstab entries.
  The attended installer will do all of the necessary installs and deal with dependencies but will need user input.
- The silent install will remove the need for the user to interact with the screen after intering the arm userpassword.
- 
- 
- **The reason for the installer script ?**
- 
- The debian installer script has different commands than the ubuntu follow along commands. The reason being is that some of the commands that work on ubunutu dont work.
- You can also run each line of the script in a console or ssh terminal.
-
-## Intel QuickSync support 
-I have added Intel QSV support for this branch only, Dont use this branch unless you want Intel quicksync for HandBrake 
-
-You will need to follow along from https://handbrake.fr/docs/en/latest/developer/install-dependencies-ubuntu.html and build from source. The default Ubuntu packages may come with them preinstalled but i didnt test this.
-Make sure you have the correct Intel media driver installed 
-**This will be updated at a later date to allow the user to select quicksync even if they are on the main branch.**
 
 ## Usage
 
