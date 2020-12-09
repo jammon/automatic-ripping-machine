@@ -1,32 +1,18 @@
 # Automatic Ripping Machine (ARM)
 
-There are new config parameters so review the new arm.yaml file
-
-Make sure the 'arm' user has write permissions to the db directory (see your arm.yaml file for locaton). is writeable by the arm user.  A db will be created when you first run ARM.
-
-Make sure that your rules file is properly **copied** instead of linked:
-```
-sudo rm /usr/lib/udev/rules.d/51-automedia.rules
-sudo cp /opt/arm/setup/51-automedia.rules /etc/udev/rules.d/
-```
-Otherwise you may not get the auto-launching of ARM when a disc is inserted behavior
-on Ubuntu 20.04.
-
-Please log any issues you find.  Don't forget to run in DEBUG mode if you need to submit an issue (and log files).  Also, please note that you are running 2.2_dev in your issue.
-
-You will also need to visit your http://WEBSERVER_IP:WEBSERVER_PORT/setup  
-							&#x26A0; &#x26A0; **!!!WARNING!!!** &#x26A0; &#x26A0;  					
-
-Visiting this page will delete your current database and create a new db file. You WILL lose jobs/tracks/etc from your database
-This will setup the new database, and ask you to make an admin account. Because of the changes to the armui its not possible to view/change/delete entries without logging in. 
-Due to these large number of changes to the database its not currently possible to upgrade without creating a new database
-
-
 ## Overview
 
 Insert an optical disc (Blu-Ray, DVD, CD) and checks to see if it's audio, video (Movie or TV), or data, then rips it.
 
 See: https://b3n.org/automatic-ripping-machine
+
+
+## Usage
+
+- Insert disc
+- Wait for disc to eject
+- Repeat
+
 
 
 ## Features
@@ -50,7 +36,7 @@ See: https://b3n.org/automatic-ripping-machine
 
 ## Requirements
 
-- Ubuntu Server 18.04 (should work with other Linux distros) - Needs Multiverse and Universe repositories
+- Ubuntu Server 20.04 (should work with other Linux distros) - Needs Multiverse and Universe repositories
 - One or more optical drives to rip Blu-Rays, DVDs, and CDs
 - Lots of drive space (I suggest using a NAS like FreeNAS) to store your movies
 
@@ -63,9 +49,8 @@ sudo apt-get install regionset
 sudo regionset /dev/sr0
 ```
 
-## Install
+## Ubuntu 20.04 Install
 
-**Please use the setup script for Ubuntu **
 **This MUST be run as root!**
  ```
  apt install wget
@@ -75,6 +60,7 @@ sudo regionset /dev/sr0
  ```
  ```reboot``` 
  to complete installation.
+
 
 ## Intel QuickSync support 
 I have added Intel QSV support for this branch only, Dont use this branch unless you want Intel quicksync for HandBrake 
@@ -104,17 +90,28 @@ I have added Intel QSV support for this branch only, Dont use this branch unless
 After setup is complete reboot...
     
     reboot
- 
- **Details about this script**
- 
- The script installs all dependencies, a service for the ARMui and the fstab entry for sr0, if you have more than one drive you will need to make the mount folder and insert any additional fstab entries.
- The attended installer will do all of the necessary installs and deal with dependencies but will need user input.
 
-## Usage
+There are new config parameters so review the new arm.yaml file
 
-- Insert disc
-- Wait for disc to eject
-- Repeat
+Make sure the 'arm' user has write permissions to the db directory (see your arm.yaml file for locaton). is writeable by the arm user.  A db will be created when you first run ARM.
+
+Make sure that your rules file is properly **copied** instead of linked:
+```
+sudo rm /usr/lib/udev/rules.d/51-automedia.rules
+sudo cp /opt/arm/setup/51-automedia.rules /etc/udev/rules.d/
+```
+Otherwise you may not get the auto-launching of ARM when a disc is inserted behavior
+on Ubuntu 20.04.
+
+Please log any issues you find.  Don't forget to run in DEBUG mode if you need to submit an issue (and log files).  Also, please note that you are running 2.2_dev in your issue.
+
+You will also need to visit your http://WEBSERVER_IP:WEBSERVER_PORT/setup  
+							&#x26A0; &#x26A0; **!!!WARNING!!!** &#x26A0; &#x26A0;  					
+
+Visiting this page will delete your current database and create a new db file. You WILL lose jobs/tracks/etc from your database
+This will setup the new database, and ask you to make an admin account. Because of the changes to the armui its not possible to view/change/delete entries without logging in. 
+Due to these large number of changes to the database its not currently possible to upgrade without creating a new database
+
 
 ## Troubleshooting
 
