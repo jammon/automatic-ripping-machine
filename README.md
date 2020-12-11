@@ -39,6 +39,7 @@ See: https://b3n.org/automatic-ripping-machine
 - Ubuntu Server 20.04 (should work with other Linux distros) - Needs Multiverse and Universe repositories
 - One or more optical drives to rip Blu-Rays, DVDs, and CDs
 - Lots of drive space (I suggest using a NAS like FreeNAS) to store your movies
+- **For QuickSync Broadwell CPU or newer is needed**
 
 ## Pre-Install (only if necessary)
 
