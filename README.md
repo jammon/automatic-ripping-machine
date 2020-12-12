@@ -132,6 +132,15 @@ When a disc is inserted, udev rules should launch a script (scripts/arm_wrapper.
 /usr/bin/python3 /opt/arm/arm/ripper/main.py -d sr0 | at now
 ```
 
+- To check if **Intel QuickSync** is enabled and is set up correctly you can run
+```
+HandBrakeCLI --help | grep -A12 "Select video encoder"
+```
+ You should see some entries with
+ ```
+ qsv_265
+ qsv_264
+ ```
 - Check ARM log files 
   - The default location is /home/arm/logs/ (unless this is changed in your arm.yaml file) and is named after the dvd. These are very verbose.  You can filter them a little by piping the log through grep.  Something like 
   ```
