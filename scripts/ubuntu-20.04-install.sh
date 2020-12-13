@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo apt upgrade -y && sudo apt update -y 
+sudo apt update -y  && sudo apt upgrade -y
 #***optional (was not required for me): sudo add-apt-repository ppa:graphics-drivers/ppa
 sudo apt install avahi-daemon -y && sudo systemctl restart avahi-daemon
 sudo apt install ubuntu-drivers-common -y && sudo ubuntu-drivers install 
