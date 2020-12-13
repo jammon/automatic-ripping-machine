@@ -3,7 +3,9 @@ sudo apt update
 sudo apt install git
 sudo add-apt-repository ppa:oibaf/graphics-drivers
 sudo apt update
-sudo apt install libvulkan1 mesa-vulkan-drivers vulkan-utils
+sudo apt install libvulkan1 vulkan-utils
+## WARN! This next line can bork your graphics drivers. care!
+# sudo apt install mesa-vulkan-drivers
 sudo apt install autoconf libtool xorg xorg-dev openbox libx11-dev libgl1-mesa-glx libgl1-mesa-dev
 
 sudo apt install automake autopoint build-essential cmake git libass-dev libbz2-dev libfontconfig1-dev libfreetype6-dev libfribidi-dev libharfbuzz-dev libjansson-dev liblzma-dev libmp3lame-dev libnuma-dev libogg-dev libopus-dev libsamplerate-dev libspeex-dev libtheora-dev libtool libtool-bin libturbojpeg0-dev libvorbis-dev libx264-dev libxml2-dev libvpx-dev m4 make meson nasm ninja-build patch pkg-config python tar zlib1g-dev 
