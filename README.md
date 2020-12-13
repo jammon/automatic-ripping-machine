@@ -113,6 +113,26 @@ Visiting this page will delete your current database and create a new db file. Y
 This will setup the new database, and ask you to make an admin account. Because of the changes to the armui its not possible to view/change/delete entries without logging in. 
 Due to these large number of changes to the database its not currently possible to upgrade without creating a new database
 
+If you have followed this correctly you will now be able to use these built in profiles
+```
+Hardware/
+    H.265 NVENC 2160p 4K
+        Nvidia NVENC hardware accelerated H.265 video (up to 2160p)
+        and AAC stereo audio, in an MP4 container.
+    H.265 NVENC 1080p
+        Nvidia NVENC hardware accelerated H.265 video (up to 1080p)
+        and AAC stereo audio, in an MP4 container.
+    H.265 QSV 2160p 4K
+        Intel Quick Sync Video hardware accelerated H.265 video (up
+        to 2160p) and AAC stereo audio, in an MP4 container.
+    H.265 QSV 1080p
+        Intel Quick Sync Video hardware accelerated H.265 video (up
+        to 1080p) and AAC stereo audio, in an MP4 container.
+    H.264 VCE 1080p
+        AMD VCE Video hardware accelerated H.264 video (up to 1080p)
+        and AAC stereo audio, in an MP4 container.
+```
+
 
 ## Troubleshooting
 
