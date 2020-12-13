@@ -42,8 +42,8 @@ cmake ..
 make
 sudo make install
 
-## Handbrake
-git clone https://github.com/HandBrake/HandBrake.git && cd HandBrake
+## Handbrake -  we use this one for the VCE preset 
+git clone https://github.com/1337-server/HandBrake.git && cd HandBrake
 ./configure --disable-gtk --enable-qsv --enable-vce --launch-jobs=$(nproc) --launch
 sudo make --directory=build install
 
