@@ -43,7 +43,8 @@ make
 sudo make install
 
 ## Handbrake -  we use this one for the VCE preset 
-git clone https://github.com/1337-server/HandBrake.git && cd HandBrake
+git clone https://github.com/HandBrake/HandBrake.git && cd HandBrake
+wget https://raw.githubusercontent.com/1337-server/HandBrake/master/libhb/handbrake/preset_builtin.h libhb/handbrake/preset_builtin.h 
 ./configure --disable-gtk --enable-qsv --enable-vce --launch-jobs=$(nproc) --launch
 sudo make --directory=build install
 
