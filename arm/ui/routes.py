@@ -43,8 +43,7 @@ def setup():
     try:
         if setupdatabase():
             return redirect('/setup-stage2')
-        else
-            # error out
+        else:
             return redirect("/error")
     except Exception as e:
         flash(str(e))
