@@ -57,7 +57,7 @@ def setup_stage2():
         # Return the user to login screen if we dont error when calling for any users
         User.query.all()
         # return redirect('/login')
-    except Exception as e:
+    except Exception:
         # return redirect('/index')
         app.logger.debug("No admin account found")
     form = LoginForm()
