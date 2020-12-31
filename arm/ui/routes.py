@@ -7,7 +7,8 @@ import sys  # noqa: F401
 import bcrypt
 import hashlib  # noqa: F401
 from time import sleep
-from flask import Flask, render_template, make_response, abort, request, send_file, flash, redirect, url_for, Markup  # noqa: F401
+from flask import Flask, render_template, make_response, abort, request, send_file, flash, redirect, url_for, \
+    Markup  # noqa: F401
 from arm.ui import app, db
 from arm.models.models import Job, Config, Track, User, Alembic_version  # noqa: F401
 from arm.config.config import cfg
@@ -42,13 +43,13 @@ def setup():
     try:
         if setupdatabase():
             return redirect('/setup-stage2')
-        else:
-            #  error out
+        else
+            # error out
             return redirect("/error")
     except Exception as e:
-         flash(str(e))
-         return redirect('/index')
-    
+        flash(str(e))
+        return redirect('/index')
+
 
 @app.route('/setup-stage2', methods=['GET', 'POST'])
 def setup_stage2():
@@ -56,9 +57,9 @@ def setup_stage2():
     try:
         # Return the user to login screen if we dont error when calling for any users
         User.query.all()
-        #return redirect('/login')
+        # return redirect('/login')
     except Exception as e:
-        #return redirect('/index')
+        # return redirect('/index')
         app.logger.debug("No admin account found")
     form = LoginForm()
 
@@ -71,8 +72,8 @@ def setup_stage2():
         if form.username.data != "" and form.password.data != "":
             hashedpassword = bcrypt.hashpw(pass1, hash)
             user = User(email=username, password=hashedpassword, hashed=hash)
-            # app.logger.debug("user: " + str(username) + " Pass:" + str(pass1))
-            # app.logger.debug("user db " + str(user))
+            app.logger.debug("user: " + str(username) + " Pass:" + str(pass1))
+            app.logger.debug("user db " + str(user))
             db.session.add(user)
             try:
                 db.session.commit()
@@ -88,11 +89,10 @@ def setup_stage2():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    
     # if there is no user in the database
     try:
         User.query.all()
-    except Exception as e:
+    except Exception:
         flash("No admin account found")
         return redirect('/setup-stage2')
 
@@ -198,7 +198,9 @@ def settings():
     raw_html = '<form id="form1" name="form1" method="get" action="">'
     # pair on each iteration.
     for k, v in cfg.items():
-        raw_html += '<tr> <td><label for="' + str(k) + '"> ' + str(k) + ': </label></td> <td><input type="text" name="' + str(k) + '" id="' + str(k) + '" value="' + str(v) + '"/></td></tr>'   # noqa: E501
+        raw_html += '<tr> <td><label for="' + str(k) + '"> ' + str(
+            k) + ': </label></td> <td><input type="text" name="' + str(k) + '" id="' + str(k) + '" value="' + str(
+            v) + '"/></td></tr>'  # noqa: E501
         app.logger.info(str(k) + str(' > ') + str(v) + "\n")
         # app.logger.info(str(raw_html))
     raw_html += " </form>"
@@ -352,7 +354,10 @@ def changeparams():
         # config.MAINFEATURE = int(format(form.MAINFEATURE.data)) #  must be 1 for True 0 for False
         job.disctype = format(form.DISCTYPE.data)
         db.session.commit()
-        flash('Parameters changed. Rip Method={}, Main Feature={}, Minimum Length={}, Maximum Length={}, Disctype={}'.format(form.RIPMETHOD.data, form.MAINFEATURE.data, form.MINLENGTH.data, form.MAXLENGTH.data, form.DISCTYPE.data))   # noqa: E501
+        flash(
+            'Parameters changed. Rip Method={}, Main Feature={}, Minimum Length={}, Maximum Length={}, Disctype={}'.format(
+                form.RIPMETHOD.data, form.MAINFEATURE.data, form.MINLENGTH.data, form.MAXLENGTH.data,
+                form.DISCTYPE.data))  # noqa: E501
         return redirect(url_for('home'))
     return render_template('changeparams.html', title='Change Parameters', form=form)
 
@@ -415,7 +420,8 @@ def updatetitle():
     job.poster_url = poster_url
     job.hasnicetitle = True
     db.session.commit()
-    flash('Title: {} ({}) was updated to {} ({})'.format(job.title_auto, job.year_auto, new_title, new_year), category='success')
+    flash('Title: {} ({}) was updated to {} ({})'.format(job.title_auto, job.year_auto, new_title, new_year),
+          category='success')
     return redirect(url_for('home'))
 
 
@@ -475,7 +481,8 @@ def home():
     else:
         jobs = {}
 
-    return render_template('index.html', freegb=freegb, mfreegb=mfreegb, jobs=jobs, cpu=ourcpu, ram=mem_gib, ramused=memused_gibs, ramfree=memused_gib, ramdump=meminfo)   # noqa: E501
+    return render_template('index.html', freegb=freegb, mfreegb=mfreegb, jobs=jobs, cpu=ourcpu, ram=mem_gib,
+                           ramused=memused_gibs, ramfree=memused_gib, ramdump=meminfo)  # noqa: E501
 
 
 #  Lets show some cpu info
@@ -515,7 +522,7 @@ def setupdatabase():
         flash(str(err))
         try:
             db.drop_all()
-        except Exception as err:
+        except Exception:
             app.logger.debug("couldnt drop all")
         try:
             #  Recreate everything
@@ -529,5 +536,5 @@ def setupdatabase():
             db.session.add(user)
             db.session.commit()
             return True
-        except Exception as err:
+        except Exception:
             app.logger.debug("couldnt create all")
