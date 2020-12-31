@@ -39,26 +39,27 @@ def unauthorized():
 def setup():
     # TODO Verify this with a secret key in the config for set up
     # So not just anyone can wipe the database
-    if setupdatabase():
-        return redirect('/setup-stage2')
-    else:
-        #  error out
-        return redirect("/error")
-
+    try:
+        if setupdatabase():
+            return redirect('/setup-stage2')
+        else:
+            #  error out
+            return redirect("/error")
+    except Exception as e:
+         flash(str(e))
+         return redirect('/index')
+    
 
 @app.route('/setup-stage2', methods=['GET', 'POST'])
 def setup_stage2():
     # if there is no user in the database
-    if User.query.all():
-        return redirect('/index')
-
-    # import logging
-    # logging.basicConfig()
-    # logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
-
-    # if user is logged in
-    # if current_user.is_authenticated:
-    #    return redirect('/index')
+    try:
+        # Return the user to login screen if we dont error when calling for any users
+        User.query.all()
+        #return redirect('/login')
+    except Exception as e:
+        #return redirect('/index')
+        app.logger.debug("No admin account found")
     form = LoginForm()
 
     # After a login for is submited
@@ -70,8 +71,8 @@ def setup_stage2():
         if form.username.data != "" and form.password.data != "":
             hashedpassword = bcrypt.hashpw(pass1, hash)
             user = User(email=username, password=hashedpassword, hashed=hash)
-            app.logger.debug("user: " + str(username) + " Pass:" + str(pass1))
-            app.logger.debug("user db " + str(user))
+            # app.logger.debug("user: " + str(username) + " Pass:" + str(pass1))
+            # app.logger.debug("user db " + str(user))
             db.session.add(user)
             try:
                 db.session.commit()
@@ -87,8 +88,12 @@ def setup_stage2():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    
     # if there is no user in the database
-    if not User.query.all():
+    try:
+        User.query.all()
+    except Exception as e:
+        flash("No admin account found")
         return redirect('/setup-stage2')
 
     # if user is logged in
@@ -299,6 +304,23 @@ def jobdetail():
     return render_template('jobdetail.html', jobs=jobs, tracks=tracks)
 
 
+@app.route('/abandon', methods=['GET', 'POST'])
+@login_required
+def abandon_job():
+    job_id = request.args.get('job_id')
+    # TODO add a confirm and then
+    #  delete the raw folder (this will cause ARM to bail)
+    try:
+        job = Job.query.get(job_id)
+        job.status = "fail"
+        db.session.commit()
+        flash("Job was abandoned!")
+        return render_template('jobdetail.html', jobs=job)
+    except Exception as e:
+        flash("Failed to update job" + str(e))
+        return render_template('error.html')
+
+
 @app.route('/titlesearch', methods=['GET', 'POST'])
 @login_required
 def submitrip():
@@ -479,7 +501,11 @@ def get_processor_name():
 
 
 def setupdatabase():
-    #  Try to get the db. User if not we nuke everything
+    """
+    Try to get the db. User if not we nuke everything
+    """
+    # TODO need to check if all the arm directories have been made
+    # logs, media, db
     try:
         User.query.all()
         return True
@@ -487,15 +513,21 @@ def setupdatabase():
         #  We only need this on first run
         #  Wipe everything
         flash(str(err))
-        db.drop_all()
-        #  Recreate everything
-        db.metadata.create_all(db.engine)
-        # See important note below
-        # from arm.models.models import User, Job, Track, Config, Alembic_version
-        db.create_all()
-        db.session.commit()
-        #  push the database version arm is looking for
-        user = Alembic_version('c3a3fa694636')
-        db.session.add(user)
-        db.session.commit()
-        return True
+        try:
+            db.drop_all()
+        except Exception as err:
+            app.logger.debug("couldnt drop all")
+        try:
+            #  Recreate everything
+            db.metadata.create_all(db.engine)
+            # See important note below
+            # from arm.models.models import User, Job, Track, Config, Alembic_version
+            db.create_all()
+            db.session.commit()
+            #  push the database version arm is looking for
+            user = Alembic_version('c3a3fa694636')
+            db.session.add(user)
+            db.session.commit()
+            return True
+        except Exception as err:
+            app.logger.debug("couldnt create all")
