@@ -81,7 +81,6 @@ RUN \
     -r /requirements.txt
 
 
-
 ###########################################################
 # build pip reqs for UI in separate stage
 FROM base as pip-ui
@@ -138,6 +137,11 @@ RUN \
 
 # copy pip reqs from build stage
 COPY --from=pip-ripper /opt/venv /opt/venv
+
+
+WORKDIR /opt/arm
+RUN pip3 install pyudev
+RUN pip3 install psutil
 
 # copy just the .deb from libdvd build stage
 COPY --from=libdvd /usr/src/libdvd-pkg/libdvdcss2_*.deb /opt/arm
