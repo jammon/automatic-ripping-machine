@@ -123,15 +123,14 @@ RUN \
     python3-pip \
     python3-venv \
     python3-wheel \
-    smartmontools \
+    python-psutil \
+    python3-pyudev \
     && \
     pip3 install wheel \
     && \
     pip3 install --upgrade pip wheel setuptools \
     && \
-    pip3 install pyudev \
-    && \
-    pip3 install pySMART \
+    pip3 install --upgrade psutil \
     && \
   DEBIAN_FRONTEND=noninteractive apt clean -y && \
   rm -rf /var/lib/apt/lists/*
