@@ -29,8 +29,13 @@ robobrowser>=0.5.3
 tinydownload>=0.1.0
 urllib3>=1.13.1
 xmltodict>=0.10.2
+musicbrainzngs>=0.7.1
+discid>=1.1.1
+prettytable>=2.0.0
+
 
 # Optional
 #pyfttt>=0.3.2
 #pushbullet.py>=0.11.0
 #python-pushover>=0.3
+apprise>=0.8.9

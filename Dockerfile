@@ -23,7 +23,7 @@ RUN if [ -n "${APT_PROXY}" ] ; then \
 RUN mkdir /opt/arm
 WORKDIR /opt/arm
 
-COPY scripts/add-ppa.sh /root/add-ppa.sh
+COPY ./scripts/add-ppa.sh /root/add-ppa.sh
 
 # setup Python virtualenv and gnupg/wget for add-ppa.sh
 RUN \
