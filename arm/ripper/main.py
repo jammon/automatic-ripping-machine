@@ -27,17 +27,18 @@ def entry():
     """ Entry to program, parses arguments"""
     parser = argparse.ArgumentParser(description='Process disc using ARM')
     parser.add_argument('-d', '--devpath', help='Devpath', required=True)
-
+    parser.add_argument('-t', '--disctype', help='udev: one of ID_CDROM_MEDIA_*', required=False)
+    parser.add_argument('-l', '--label', help='udev: ID_FS_LABEL', required=False)
     return parser.parse_args()
 
 
-def log_udev_params():
+def log_udev_params(devpath):
     """log all udev paramaters"""
 
     logging.debug("**** Logging udev attributes ****")
     # logging.info("**** Start udev attributes ****")
     context = pyudev.Context()
-    device = pyudev.Devices.from_device_file(context, '/dev/sr0')
+    device = pyudev.Devices.from_device_file(context, devpath)
     for key, value in device.items():
         logging.debug(key + ":" + value)
     logging.debug("**** End udev attributes ****")
@@ -330,7 +331,7 @@ def main(logfile, job):
                 job.status = "success"
                 db.session.commit()
                 # exit
-                job.eject()
+                utils.eject(job.devpath)
                 sys.exit()
 
         job.status = "transcoding"
@@ -341,10 +342,10 @@ def main(logfile, job):
             handbrake.handbrake_mkv(hbinpath, hboutpath, logfile, job)
         elif job.video_type == "movie" and job.config.MAINFEATURE and job.hasnicetitle:
             handbrake.handbrake_mainfeature(hbinpath, hboutpath, logfile, job)
-            job.eject()
+            utils.eject(job.devpath)
         else:
             handbrake.handbrake_all(hbinpath, hboutpath, logfile, job)
-            job.eject()
+            utils.eject(job.devpath)
 
         # check if there is a new title and change all filenames
         # time.sleep(60)
@@ -434,7 +435,7 @@ def main(logfile, job):
             db.session.commit()
         else:
             logging.info("Music rip failed.  See previous errors.  Exiting. ")
-            job.eject()
+            utils.eject(job.devpath)
             job.status = "fail"
             db.session.commit()
 
@@ -451,10 +452,10 @@ def main(logfile, job):
 
         if utils.rip_data(job, datapath, logfile):
             utils.notify(job, "ARM notification", "Data disc: " + str(job.label) + " copying complete. ")
-            job.eject()
+            utils.eject(job.devpath)
         else:
             logging.info("Data rip failed.  See previous errors.  Exiting.")
-            job.eject()
+            utils.eject(job.devpath)
 
     else:
         logging.info("Couldn't identify the disc type. Exiting without any action.")
@@ -476,15 +477,18 @@ if __name__ == "__main__":
     args = entry()
     devpath = "/dev/" + args.devpath
     # print(devpath)
+    if not utils.is_cdrom_ready(devpath):
+        print("Drive empty or is not ready. Exiting ARM Ripper.", file=sys.stderr)
+        sys.exit(1)
     job = Job(devpath)
+    (job.pid, job.pid_hash) = utils.get_pid()
     logfile = logger.setuplogging(job)
-    if utils.get_cdrom_status(devpath) != 4:
-        logging.info("Drive appears to be empty or is not ready.  Exiting ARM.")
-        sys.exit()
-    #  Dont put out anything if we are using the empty.log
-    #  This kills multiple runs. it stops the same job triggering more than once
-    if not logfile.find("empty.log") == -1:
-        sys.exit()
+    print("Log: " + logfile)
+    if args.disctype:
+        (job.disctype, job.label) = utils.parse_udev_cmdline(args)
+    else:
+        (job.disctype, job.label) = utils.detect_disctype(devpath)
+
     logging.info("Starting ARM processing at " + str(datetime.datetime.now()))
 
     utils.check_db_version(cfg['INSTALLPATH'], cfg['DBFILE'])
@@ -523,7 +527,7 @@ if __name__ == "__main__":
             j.status = "fail"
             db.session.commit()
 
-    log_udev_params()
+    log_udev_params(devpath)
 
     try:
         main(logfile, job)
@@ -532,7 +536,7 @@ if __name__ == "__main__":
         utils.notify(job, "ARM notification", "ARM encountered a fatal error processing " + str(
             job.title) + ". Check the logs for more details. " + str(e))
         job.status = "fail"
-        job.eject()
+        utils.eject(job.devpath)
     else:
         job.status = "success"
     finally:
