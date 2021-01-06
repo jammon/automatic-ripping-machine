@@ -81,6 +81,7 @@ RUN \
     -r /requirements.txt
 
 
+
 ###########################################################
 # build pip reqs for UI in separate stage
 FROM base as pip-ui
@@ -112,14 +113,29 @@ RUN \
     ffmpeg \
     flac \
     glyrc \
+    default-jre-headless \
     handbrake-cli \
     libavcodec-extra \
     makemkv-bin \
     makemkv-oss \
     python3 \
+    python3-dev \
+    python3-pip \
+    python3-venv \
+    python3-wheel \
+    smartmontools \
+    && \
+    pip3 install wheel \
+    && \
+    pip3 install --upgrade pip wheel setuptools \
+    && \
+    pip3 install pyudev \
+    && \
+    pip3 install pySMART \
     && \
   DEBIAN_FRONTEND=noninteractive apt clean -y && \
   rm -rf /var/lib/apt/lists/*
+
 
 # copy pip reqs from build stage
 COPY --from=pip-ripper /opt/venv /opt/venv
