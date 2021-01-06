@@ -67,12 +67,19 @@ RUN \
     libssl-dev \
     python3 \
     python3-dev \
+    python3-pyudev \
+    python3-wheel \
     python3-pip \
     && \
+  pip3 install --upgrade pip wheel setuptools \
+  && \
+  pip3 install pyudev \
+  && \
   pip3 install \
     --ignore-installed \
     --prefer-binary \
     -r /requirements.txt
+
 
 ###########################################################
 # build pip reqs for UI in separate stage
