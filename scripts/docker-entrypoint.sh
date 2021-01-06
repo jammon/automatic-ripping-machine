@@ -21,7 +21,7 @@ if ! id -u "${USER}" ; then
 fi
 
 # setup needed/expected dirs if not found
-SUBDIRS="media media/completed media/raw media/movies encode logs db Music"
+SUBDIRS="media media/completed media/raw media/movies encode logs db Music .MakeMKV"
 for dir in $SUBDIRS ; do
   thisDir="${HOME}/${dir}"
   if [[ ! -d "${thisDir}" ]] ; then
@@ -39,6 +39,10 @@ if [[ ! -f "${HOME}/.abcde.conf" ]] ; then
   echo "creating example abcde config ${HOME}/.abcde.conf"
   cp /opt/arm/setup/.abcde.conf "${HOME}/.abcde.conf"
   chown "${USER}.${USER}" "${HOME}/.abcde.conf"
+fi
+echo "setting makemkv app-Key"
+if ! [[ -z "${MAKEMKV_APP_KEY}" ]] ; then
+  echo "app_Key = \"${MAKEMKV_APP_KEY}\"" > "${HOME}/.MakeMKV/settings.conf"
 fi
 
 [[ -h /dev/cdrom ]] || ln -sv /dev/sr0 /dev/cdrom 

@@ -11,6 +11,9 @@ ENV RUN_AS_USER=true
 ENV UID=1000
 ENV GID=1000
 
+# override at runtime to change makemkv key
+ENV MAKEMKV_APP_KEY=
+
 # local apt/deb proxy for builds
 ARG APT_PROXY=
 RUN if [ -n "${APT_PROXY}" ] ; then \
@@ -141,9 +144,13 @@ FROM deps-${target} AS install
 
 # default directories and configs
 RUN \
-  mkdir -m 0755 -p /home/arm /mnt/dev/sr0 && \
+  mkdir -m 0755 -p /home/arm /mnt/dev/sr0 /mnt/dev/sr1 /mnt/dev/sr2 /mnt/dev/sr3 /mnt/dev/sr4 && \
   ln -sv /home/arm/arm.yaml /opt/arm/arm.yaml && \
-  echo "/dev/sr0  /mnt/dev/sr0  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab 
+  echo "/dev/sr0  /mnt/dev/sr0  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab  && \
+  echo "/dev/sr1  /mnt/dev/sr1  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab  && \
+  echo "/dev/sr2  /mnt/dev/sr2  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab  && \
+  echo "/dev/sr3  /mnt/dev/sr3  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab  && \
+  echo "/dev/sr4  /mnt/dev/sr4  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab
 
 # copy ARM source last, helps with Docker build caching
 COPY . /opt/arm/ 
