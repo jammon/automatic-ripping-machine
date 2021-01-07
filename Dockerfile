@@ -34,6 +34,7 @@ RUN \
     gosu \
     python3 \
     python3-venv \
+    udev \
     wget \
     && \
   DEBIAN_FRONTEND=noninteractive apt clean -y && \
@@ -69,6 +70,8 @@ RUN \
     python3-dev \
     python3-pyudev \
     python3-wheel \
+    udev \
+    libudev-dev \
     python3-pip \
     && \
   pip3 install --upgrade pip wheel setuptools \
@@ -92,6 +95,7 @@ RUN \
     python3 \
     python3-dev \
     python3-pip \
+    udev \
     && \
   pip3 install \
     --ignore-installed \
@@ -117,10 +121,12 @@ RUN \
     libavcodec-extra \
     makemkv-bin \
     makemkv-oss \
+    udev \
     python3 \
     python3-dev \
     python3-pip \
     python3-venv \
+    libudev-dev \
     python3-wheel \
     python-psutil \
     python3-pyudev \
@@ -131,17 +137,14 @@ RUN \
     && \
     pip3 install --upgrade psutil \
     && \
+    pip3 install pyudev \
+    && \
   DEBIAN_FRONTEND=noninteractive apt clean -y && \
   rm -rf /var/lib/apt/lists/*
 
 
 # copy pip reqs from build stage
 COPY --from=pip-ripper /opt/venv /opt/venv
-
-
-WORKDIR /opt/arm
-RUN pip3 install pyudev
-RUN pip3 install psutil
 
 # copy just the .deb from libdvd build stage
 COPY --from=libdvd /usr/src/libdvd-pkg/libdvdcss2_*.deb /opt/arm
@@ -163,14 +166,12 @@ FROM deps-ripper as deps-combined
 # copy pip reqs from build stage
 COPY --from=pip-ui /opt/venv /opt/venv
 COPY --from=pip-ripper /opt/venv /opt/venv
-
 ###########################################################
 # build final image
 FROM deps-${target} AS install
-
 # default directories and configs
 RUN \
-  mkdir -m 0755 -p /home/arm /mnt/dev/sr0 /mnt/dev/sr1 /mnt/dev/sr2 /mnt/dev/sr3 /mnt/dev/sr4 && \
+  mkdir -m 0777 -p /home/arm /mnt/dev/sr0 /mnt/dev/sr1 /mnt/dev/sr2 /mnt/dev/sr3 /mnt/dev/sr4 && \
   ln -sv /home/arm/arm.yaml /opt/arm/arm.yaml && \
   echo "/dev/sr0  /mnt/dev/sr0  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab  && \
   echo "/dev/sr1  /mnt/dev/sr1  udf,iso9660  user,noauto,exec,utf8,ro  0  0" >> /etc/fstab  && \
@@ -183,6 +184,9 @@ COPY . /opt/arm/
 
 EXPOSE 8080
 VOLUME /home/arm
+VOLUME /home/arm/Music
+VOLUME /home/arm/logs
+VOLUME /home/arm/media
 WORKDIR /home/arm
 
 ENTRYPOINT ["/opt/arm/scripts/docker-entrypoint.sh"]
