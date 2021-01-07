@@ -797,7 +797,7 @@ def parse_udev(udev_dict):
             "ID_CDROM_MEDIA_DVD": "dvd",
             "ID_CDROM_MEDIA_TRACK_COUNT_AUDIO": "music"
             }
-    disctype == "unknown"
+    disctype = "unknown"
     label = udev_dict.get("ID_FS_LABEL", None)
     if label is None:
         label == "unknown"
