@@ -184,9 +184,9 @@ COPY . /opt/arm/
 
 EXPOSE 8080
 VOLUME /home/arm
-VOLUME /home/arm/Music
-VOLUME /home/arm/logs
-VOLUME /home/arm/media
+#VOLUME /home/arm/Music
+#VOLUME /home/arm/logs
+#VOLUME /home/arm/media
 WORKDIR /home/arm
 
 ENTRYPOINT ["/opt/arm/scripts/docker-entrypoint.sh"]
