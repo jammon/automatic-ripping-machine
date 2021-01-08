@@ -462,33 +462,22 @@ def main(logfile, job):
 
 
 if __name__ == "__main__":
-    # Make sure all directories are fully setup
-    utils.arm_setup()
-    log_path = PurePath(cfg['LOGPATH'], "NAS.log")
-    log_file = Path(log_path)
-    if log_file.is_file():
-        logging.basicConfig(filename=log_file,
-                            format='[%(asctime)s] %(levelname)s ARM: %(message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S', level="DEBUG")
-    else:
-        logging.basicConfig(filename=cfg['INSTALLPATH'] + "NAS.log",
-                            format='[%(asctime)s] %(levelname)s ARM: %(message)s',
-                            datefmt='%Y-%m-%d %H:%M:%S', level="DEBUG")
     args = entry()
+    
     devpath = "/dev/" + args.devpath
     # print(devpath)
+    
     if not utils.is_cdrom_ready(devpath):
         print("Drive empty or is not ready. Exiting ARM Ripper.", file=sys.stderr)
         sys.exit(1)
     job = Job(devpath)
     (job.pid, job.pid_hash) = utils.get_pid()
-    logfile = logger.setuplogging(job)
-    print("Log: " + logfile)
     if args.disctype:
         (job.disctype, job.label) = utils.parse_udev_cmdline(args)
     else:
         (job.disctype, job.label) = utils.detect_disctype(devpath)
-
+    logfile = logger.setuplogging(job)
+    print("Log: " + logfile)
     logging.info("Starting ARM processing at " + str(datetime.datetime.now()))
 
     utils.check_db_version(cfg['INSTALLPATH'], cfg['DBFILE'])

@@ -783,6 +783,7 @@ def detect_disctype(devpath):
 
 def parse_udev_cmdline(args):
     udev = {}
+    print(str(args))
     if args.disctype:
         (k, v) = args.disctype.split('=', 1)
         udev[k] = v
@@ -797,8 +798,10 @@ def parse_udev(udev_dict):
             "ID_CDROM_MEDIA_DVD": "dvd",
             "ID_CDROM_MEDIA_TRACK_COUNT_AUDIO": "music"
             }
-    disctype == "unknown"
+    disctype = "unknown"
+    print(str(udev_dict))
     label = udev_dict.get("ID_FS_LABEL", None)
+    logging.debug(str(udev_dict))
     if label is None:
         label == "unknown"
     elif label == "iso9660":

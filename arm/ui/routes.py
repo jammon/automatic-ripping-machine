@@ -358,8 +358,9 @@ def settings():
                             arm_cfg += "{}: \"{}\"\n".format(k, v)
                 app.logger.debug("\n{} = {} ".format(k, v))
 
-        app.logger.debug("arm_cfg= {}".format(arm_cfg))
-        arm_cfg_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..", "arm.yaml")
+        #app.logger.debug("arm_cfg= {}".format(arm_cfg))
+        arm_cfg_file = "/opt/arm/arm.yaml"
+        app.logger.debug(str(arm_cfg_file))
         with open(arm_cfg_file, "w") as f:
             f.write(arm_cfg)
             f.close()
@@ -661,21 +662,22 @@ def home():
             # db isnt setup
             return redirect(url_for('setup'))
         for job in jobs:
-            job_log = cfg['LOGPATH'] + job.logfile
-            line = subprocess.check_output(['tail', '-n', '1', job_log])
-            # job_status = re.search("([0-9]{1,2}\.[0-9]{2}) %.*ETA ([0-9]{2})h([0-9]{2})m([0-9]{2})s", str(line))
-            # ([0-9]{1,3}\.[0-9]{2}) %.*(?!ETA) ([0-9hms]*?)\)  # This is more dumb but it returns with the h m s
-            # job_status = re.search(r"([0-9]{1,2}\.[0-9]{2}) %.*ETA\s([0-9hms]*?)\)", str(line))
-            # This correctly get the very last ETA and %
-            job_status = re.search(r"([0-9]{1,3}\.[0-9]{2}) %.{0,40}ETA ([0-9hms]*?)\)(?!\\rEncod)", str(line))
-            if job_status:
-                job.progress = job_status.group(1)
-                # job.eta = job_status.group(2)+":"+job_status.group(3)+":"+job_status.group(4)
-                job.eta = job_status.group(2)
-                app.logger.debug("job.progress = " + str(job.progress))
-                x = job.progress
-                job.progress_round = int(float(x))
-                app.logger.debug("Job.round = " + str(job.progress_round))
+            if job.logfile is not None:
+                job_log = cfg['LOGPATH'] + str(job.logfile)
+                line = subprocess.check_output(['tail', '-n', '1', str(job_log)])
+                # job_status = re.search("([0-9]{1,2}\.[0-9]{2}) %.*ETA ([0-9]{2})h([0-9]{2})m([0-9]{2})s", str(line))
+                # ([0-9]{1,3}\.[0-9]{2}) %.*(?!ETA) ([0-9hms]*?)\)  # This is more dumb but it returns with the h m s
+                # job_status = re.search(r"([0-9]{1,2}\.[0-9]{2}) %.*ETA\s([0-9hms]*?)\)", str(line))
+                # This correctly get the very last ETA and %
+                job_status = re.search(r"([0-9]{1,3}\.[0-9]{2}) %.{0,40}ETA ([0-9hms]*?)\)(?!\\rEncod)", str(line))
+                if job_status:
+                    job.progress = job_status.group(1)
+                    # job.eta = job_status.group(2)+":"+job_status.group(3)+":"+job_status.group(4)
+                    job.eta = job_status.group(2)
+                    app.logger.debug("job.progress = " + str(job.progress))
+                    x = job.progress
+                    job.progress_round = int(float(x))
+                    app.logger.debug("Job.round = " + str(job.progress_round))
     else:
         jobs = {}
 

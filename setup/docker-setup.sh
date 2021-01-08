@@ -6,7 +6,7 @@ set -euo pipefail
 SRCDIR="/opt/arm"
 DATADIR="/srv/docker/arm"
 
-git clone -b docker --depth=1 https://github.com/deekue/automatic-ripping-machine.git "$SRCDIR"
+git clone -b docker --depth=1 https://github.com/1337-server/automatic-ripping-machine.git "$SRCDIR"
 mkdir -p "$DATADIR"
 
 cd "$SRCDIR"
