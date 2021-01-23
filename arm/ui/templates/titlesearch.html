@@ -13,6 +13,9 @@
 					<span class="input-group-text" id="searchtitle">Title</span>
 				</div>
 				<input type="text" class="form-control" aria-label="searchtitle" name="title" placeholder="search..." value="" aria-describedby="searchtitle">
+			    <div class="invalid-tooltip">
+					Search can't be blank
+				</div>
 				<div class="input-group-prepend">
 					<span class="input-group-text" id="basic-addon1">Year</span>
 				</div>
@@ -23,6 +26,10 @@
 		</form>
 	</div>
 </div>
-
+			{% if form.errors %}
+				{% for k in form.errors %}
+					<script>$("[name='{{k}}']").addClass("is-invalid");</script>
+				{% endfor %}
+			{% endif %}
 
 {% endblock %}

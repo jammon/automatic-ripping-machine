@@ -30,7 +30,7 @@ div.card div.background-poster{
 						<a id="posterClick" href="#">
 							<img src="static/img/none.png" width="240px" class="img-thumbnail"></a>
 							{% if jobs.video_type != "Music" %}
-							<div class="btn-group-vertical float-right mt-2">
+							<div class="btn-group float-right mt-2" role="group">
 								<a href="titlesearch?job_id={{ jobs.job_id }}" class="btn btn-primary">Title Search</a>
 								<a href="customTitle?job_id={{ jobs.job_id }}" class="btn btn-primary">Custom Title</a>
 							    <a id="plot" class="btn btn-primary">Plot</a>
@@ -42,7 +42,7 @@ div.card div.background-poster{
 						<a id="posterClick" href="#">
 							<img src="{{ jobs.poster_url }}" width="240px" class="img-thumbnail"></a>
 							{% if jobs.video_type != "Music" %}
-							<div class="btn-group-vertical float-right mt-2">
+							<div class="btn-group float-right mt-2"  role="group">
 								<a href="titlesearch?job_id={{ jobs.job_id }}" class="btn btn-primary">Title Search</a>
 								<a href="customTitle?job_id={{ jobs.job_id }}" class="btn btn-primary">Custom Title</a>
 							    <a id="plot" class="btn btn-primary">Plot</a>

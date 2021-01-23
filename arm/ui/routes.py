@@ -16,7 +16,7 @@ from arm.ui import app, db
 from arm.models.models import Job, Config, Track, User, Alembic_version  # noqa: F401
 from arm.config.config import cfg
 # from arm.ui.utils import get_info, call_omdb_api, clean_for_filename, generate_comments
-from arm.ui.forms import TitleSearchForm, ChangeParamsForm, CustomTitleForm
+from arm.ui.forms import TitleSearchForm, ChangeParamsForm, CustomTitleForm, SettingsForm
 from pathlib import Path, PurePath
 from flask.logging import default_handler  # noqa: F401
 
@@ -307,11 +307,6 @@ def feed_json():
 @login_required
 def settings():
     x = ""
-    save = False
-    try:
-        save = request.form['save']
-    except KeyError:
-        app.logger.debug("no post")
     arm_cfg_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../..", "arm.yaml")
     comments_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "comments.json")
     try:
@@ -332,13 +327,15 @@ def settings():
                 cfg = yaml.safe_load(f)  # For older versions use this
     except FileNotFoundError:
         return render_template("error.html", error="Couldn't find the arm.yaml file")
-
-    if save:
+    form = SettingsForm()
+    if form.validate_on_submit():
         # For testing
         x = request.form.to_dict()
         arm_cfg = comments['ARM_CFG_GROUPS']['BEGIN'] + "\n\n"
+        # TODO: This is not the safest way to do things. It assumes the user isn't trying to mess with us.
+        # This really should be hard coded.
         for k, v in x.items():
-            if k != "save":
+            if k != "csrf_token":
                 if k == "ARMPATH":
                     arm_cfg += "\n" + comments['ARM_CFG_GROUPS']['DIR_SETUP']
                 elif k == "WEBSERVER_IP":
@@ -386,12 +383,11 @@ def settings():
         now = datetime.datetime.now()
         arm_main = os.path.join(os.path.dirname(os.path.abspath(__file__)), "routes.py")
         set_file_last_modified(arm_main, now)
-        
+
         flash("Setting saved successfully!", "success")
         return redirect(url_for('settings'))
-
     # If we get to here there was no post data
-    return render_template('settings.html', settings=cfg, raw=x, jsoncomments=comments)
+    return render_template('settings.html', settings=cfg, form=form, raw=x, jsoncomments=comments)
 
 
 @app.route('/logreader')
@@ -539,7 +535,7 @@ def customtitle():
         db.session.commit()
         flash(f'custom title changed. Title={form.title.data}, Year={form.year.data}.', "success")
         return redirect(url_for('home'))
-    return render_template('customTitle.html', title='Change Title', form=form)
+    return render_template('customTitle.html', title='Change Title', form=form, job=job)
 
 
 @app.route('/list_titles')

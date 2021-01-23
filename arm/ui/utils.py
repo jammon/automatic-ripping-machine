@@ -104,7 +104,7 @@ def generate_log(logpath, job_id):
         job = None
 
     app.logger.debug("in logging")
-    if job is None:
+    if job is None or job.logfile is None or job.logfile == "":
         app.logger.debug(f"Cant find the job {job_id}")
         return {'success': False, 'job': job_id, 'log': 'Not found'}
     # Assemble full path
@@ -366,10 +366,10 @@ def get_tmdb_poster(search_query=None, year=None):
     tmdb_api_key = cfg['TMDB_API_KEY']
     if year:
         url = f"https://api.themoviedb.org/3/search/movie?api_key={tmdb_api_key}&query={search_query}&year={year}"
-        url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}&year={year}"
+        # url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}&year={year}"
     else:
         url = f"https://api.themoviedb.org/3/search/movie?api_key={tmdb_api_key}&query={search_query}"
-        url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}"
+        # url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}"
     # Valid poster sizes
     # "w92", "w154", "w185", "w342", "w500", "w780", "original"
     poster_size = "original"
@@ -433,7 +433,7 @@ def tmdb_search(search_query=None, year=None):
             s['Title'] = s['title']
             s['Type'] = "movie"
             app.logger.debug(f"{s['title']} ({s['Year']})- {poster_base}{s['poster_path']}")
-            s['Poster'] = f"{poster_base}{s['poster_path']}"                    # print(poster_url)
+            s['Poster'] = f"{poster_base}{s['poster_path']}"  # print(poster_url)
             s['background_url'] = f"{poster_base}{s['backdrop_path']}"
             app.logger.debug(s['background_url'])
         x['Search'] = p['results']
@@ -462,7 +462,6 @@ def tmdb_get_imdb(tmdb_id):
 
 
 def tmdb_find(imdb_id):
-
     tmdb_api_key = cfg['TMDB_API_KEY']
     url = f"https://api.themoviedb.org/3/find/{imdb_id}?api_key={tmdb_api_key}&external_source=imdb_id"
     poster_size = "original"
