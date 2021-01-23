@@ -10,8 +10,8 @@ import json
 import yaml
 import arm.ui.utils as utils
 from time import sleep
-from flask import Flask, render_template, make_response, abort, request, send_file, flash, redirect, url_for, \
-    Markup  # noqa: F401
+from flask import Flask, render_template, make_response, abort, request, send_file, flash, \
+    redirect, url_for  # noqa: F401
 from arm.ui import app, db
 from arm.models.models import Job, Config, Track, User, Alembic_version  # noqa: F401
 from arm.config.config import cfg
@@ -371,12 +371,22 @@ def settings():
                             arm_cfg += f"{k}: {v_low}\n"
                         else:
                             arm_cfg += f"{k}: \"{v}\"\n"
-                app.logger.debug(f"\n{k} = {v} ")
+                # app.logger.debug(f"\n{k} = {v} ")
 
-        app.logger.debug(f"arm_cfg= {arm_cfg}")
+        # app.logger.debug(f"arm_cfg= {arm_cfg}")
         with open(arm_cfg_file, "w") as f:
             f.write(arm_cfg)
             f.close()
+        # Now we update the file modified time to get flask to restart
+        import datetime
+
+        def set_file_last_modified(file_path, dt):
+            dt_epoch = dt.timestamp()
+            os.utime(file_path, (dt_epoch, dt_epoch))
+        now = datetime.datetime.now()
+        arm_main = os.path.join(os.path.dirname(os.path.abspath(__file__)), "routes.py")
+        set_file_last_modified(arm_main, now)
+        
         flash("Setting saved successfully!", "success")
         return redirect(url_for('settings'))
 
@@ -470,26 +480,12 @@ def history():
 @login_required
 def jobdetail():
     job_id = request.args.get('job_id')
-    jobs = Job.query.get(job_id)
-    tracks = jobs.tracks.all()
-    return render_template('jobdetail.html', jobs=jobs, tracks=tracks, success="null")
-
-
-@app.route('/abandon', methods=['GET', 'POST'])
-@login_required
-def abandon_job():
-    job_id = request.args.get('job_id')
-    # TODO add a confirm and then
-    #  delete the raw folder (this will cause ARM to bail)
-    try:
-        # This should be none if we aren't set
-        job = Job.query.get(job_id)
-        job.status = "fail"
-        db.session.commit()
-        return render_template('jobdetail.html', success="true", jobmessage="Job was abandoned!", jobs=job)
-    except Exception as e:
-        flash(f"Failed to update job {e}", "danger")
-        return render_template('error.html')
+    job = Job.query.get(job_id)
+    tracks = job.tracks.all()
+    s = utils.metadata_selector("get_details", job.title, job.year, job.imdb_id)
+    job.plot = s['Plot'] if 'Error' not in s else None
+    job.background = s['background_url'] if 'Error' not in s else None
+    return render_template('jobdetail.html', jobs=job, tracks=tracks)
 
 
 @app.route('/titlesearch', methods=['GET', 'POST'])
@@ -517,7 +513,6 @@ def changeparams():
         config.MINLENGTH = format(form.MINLENGTH.data)
         config.MAXLENGTH = format(form.MAXLENGTH.data)
         config.RIPMETHOD = format(form.RIPMETHOD.data)
-        # config.MAINFEATURE = int(format(form.MAINFEATURE.data) == 'true')
         config.MAINFEATURE = bool(format(form.MAINFEATURE.data))  # must be 1 for True 0 for False
         app.logger.debug(f"main={config.MAINFEATURE}")
         job.disctype = format(form.DISCTYPE.data)
@@ -557,8 +552,9 @@ def list_titles():
         app.logger.debug("list_titles - no job supplied")
         flash("No job supplied", "danger")
         return redirect('/error')
-    dvd_info = utils.call_omdb_api(title, year)
-    return render_template('list_titles.html', results=dvd_info, job_id=job_id)
+
+    search_results = utils.metadata_selector("search", title, year)
+    return render_template('list_titles.html', results=search_results, job_id=job_id)
 
 
 @app.route('/gettitle', methods=['GET', 'POST'])
@@ -568,20 +564,22 @@ def gettitle():
     imdb_id = request.args.get('imdbID').strip() if request.args.get('imdbID') else None
     job_id = request.args.get('job_id').strip() if request.args.get('job_id') else None
     if imdb_id == "" or imdb_id is None:
-        app.logger.debug("gettitle - no job supplied")
-        flash("No job supplied", "danger")
+        app.logger.debug("gettitle - no imdb supplied")
+        flash("No imdb supplied", "danger")
         return redirect('/error')
     if job_id == "" or job_id is None:
         app.logger.debug("gettitle - no job supplied")
         flash("No job supplied", "danger")
         return redirect('/error')
-    dvd_info = utils.call_omdb_api(None, None, imdb_id, "full")
+    dvd_info = utils.metadata_selector("get_details", None, None, imdb_id)
     return render_template('showtitle.html', results=dvd_info, job_id=job_id)
 
 
 @app.route('/updatetitle', methods=['GET', 'POST'])
 @login_required
 def updatetitle():
+    # updatetitle?title=Home&amp;year=2015&amp;imdbID=tt2224026&amp;type=movie&amp;
+    #  poster=http://image.tmdb.org/t/p/original/usFenYnk6mr8C62dB1MoAfSWMGR.jpg&amp;job_id=109
     new_title = request.args.get('title')
     new_year = request.args.get('year')
     video_type = request.args.get('type')
@@ -602,7 +600,10 @@ def updatetitle():
     job.poster_url = poster_url
     job.hasnicetitle = True
     db.session.commit()
+    # TODO: show the previous values that were set, not just assume it was _auto
     flash(f'Title: {job.title_auto} ({job.year_auto}) was updated to {new_title} ({new_year})', "success")
+    # TODO: Check where they came from and send them back there.
+    #  I hate being redirected to home when i didnt come from there
     return redirect(url_for('home'))
 
 
