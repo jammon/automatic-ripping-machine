@@ -408,10 +408,10 @@ def tmdb_search(search_query=None, year=None):
     tmdb_api_key = cfg['TMDB_API_KEY']
     if year:
         url = f"https://api.themoviedb.org/3/search/movie?api_key={tmdb_api_key}&query={search_query}&year={year}"
-        url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}&year={year}"
+        # url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}&year={year}"
     else:
         url = f"https://api.themoviedb.org/3/search/movie?api_key={tmdb_api_key}&query={search_query}"
-        url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}"
+        # url_clean = f"https://api.themoviedb.org/3/search/movie?api_key=hidden&query={search_query}"
     # Valid poster sizes
     # "w92", "w154", "w185", "w342", "w500", "w780", "original"
     poster_size = "original"
