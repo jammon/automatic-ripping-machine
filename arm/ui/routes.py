@@ -479,8 +479,9 @@ def jobdetail():
     job = Job.query.get(job_id)
     tracks = job.tracks.all()
     s = utils.metadata_selector("get_details", job.title, job.year, job.imdb_id)
-    job.plot = s['Plot'] if 'Error' not in s else None
-    job.background = s['background_url'] if 'Error' not in s else None
+    if s:
+        job.plot = s['Plot'] if 'Error' not in s else None
+        job.background = s['background_url'] if 'Error' not in s else None
     return render_template('jobdetail.html', jobs=job, tracks=tracks)
 
 

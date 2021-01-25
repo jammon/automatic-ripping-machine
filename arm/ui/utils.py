@@ -261,6 +261,7 @@ def get_omdb_poster(title=None, year=None, imdbID=None, plot="short"):
     title_info = {}
     if imdbID:
         strurl = f"http://www.omdbapi.com/?i={imdbID}&plot={plot}&r=json&apikey={omdb_api_key}"
+        strurl2 = ""
     elif title:
         strurl = f"http://www.omdbapi.com/?s={title}&y={year}&plot={plot}&r=json&apikey={omdb_api_key}"
         strurl2 = f"http://www.omdbapi.com/?t={title}&y={year}&plot={plot}&r=json&apikey={omdb_api_key}"
