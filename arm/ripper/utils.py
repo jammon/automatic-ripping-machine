@@ -1324,54 +1324,15 @@ def database_updater(args, job, wait_time=90):
     for (key, value) in args.items():
         logging.debug(str(key) + "= " + str(value))
         logging.debug("key = " + str(key))
-        if key == "job_id":
-            job.job_id = value
-        elif key == "logfile":
-            job.logfile = value
-        elif key == "status":
-            job.status = value
-        elif key == "no_of_titles":
-            job.no_of_titles = value
-        elif key == "job_length":
-            job.job_length = value
-        elif key == "crc_id":
-            job.crc_id = value
-        elif key == "year":
-            job.year = value
-        elif key == "year_auto":
-            job.year_auto = value
-        elif key == "year_manual":
-            job.year_manual = value
-        elif key == "no_of_titles":
-            job.no_of_titles = value
-        elif key == "title":
-            job.title = value
-        elif key == "title_auto":
-            job.title_auto = value
-        elif key == "title_manual":
-            job.title_manual = value
-        elif key == "video_type":
-            job.video_type = value
-        elif key == "video_type_auto":
-            job.video_type_auto = value
-        elif key == "video_type_manual":
-            job.video_type_manual = value
-        elif key == "imdb_id":
-            job.imdb_id = value
-        elif key == "imdb_id_auto":
-            job.poster_url = value
-        elif key == "imdb_id_manual":
-            job.imdb_id_manual = value
-        elif key == "poster_url":
-            job.poster_url = value
-        elif key == "poster_url_auto":
-            job.poster_url_auto = value
-        elif key == "poster_url_manual":
-            job.poster_url_manual = value
-        elif key == "hasnicetitle":
-            job.hasnicetitle = value
-        elif key == "errors":
-            job.errors = value
+        if key in (
+                "job_id", "logfile", "status", "no_of_titles", "job_length",
+                "crc_id", "year", "year_auto", "year_manual", "no_of_titles",
+                "title", "title_auto", "title_manual", "video_type",
+                "video_type_auto", "video_type_manual", "imdb_id",
+                "imdb_id_auto", "imdb_id_manual", "poster_url",
+                "poster_url_auto", "poster_url_manual", "hasnicetitle",
+                "errors"):
+            setattr(job, key, value)
 
     for i in range(wait_time):  # give up after the users wait period in seconds
         try:
@@ -1389,9 +1350,9 @@ def database_updater(args, job, wait_time=90):
 
 
 def job_dupe_check(job):
-    """
-    function for checking the database to look for jobs that have completed
-    successfully with the same crc
+    """ Check the database for completed Jobs with the same crc
+
+    Usually these jobs will describe the same disc.
 
     :param job: The job obj so we can use the crc/title etc
     :return: True if we have found dupes with the same crc
@@ -1422,12 +1383,3 @@ def job_dupe_check(job):
     else:
         logging.debug("jobs is none or len(r) is 0 - we have no jobs")
         return False, None
-
-
-_arm_version = None
-def get_arm_version():
-    global _arm_version
-    if _arm_version is None:
-        with open(os.path.join(cfg["INSTALLPATH"], 'VERSION')) as version_file:
-            _arm_version = version_file.read().strip()
-    return _arm_version

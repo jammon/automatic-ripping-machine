@@ -1,6 +1,8 @@
 #!/bin/bash
 
 DEVNAME=$1
+# Tell me that it even started
+echo "Starting ARM on ${DEVNAME} at `date`">>/home/arm/private.log
 
 sleep 5 # allow the system enough time to load disc information such as title
 

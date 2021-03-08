@@ -4,8 +4,7 @@ import pyudev
 import psutil
 import logging
 from arm.ui import db
-from arm.ripper import utils
-from arm.config.config import cfg  # noqa: E402
+from arm.config.config import cfg, get_arm_version  # noqa: E402
 from flask_login import LoginManager, current_user, login_user, UserMixin  # noqa: F401
 from prettytable import PrettyTable
 
@@ -53,7 +52,7 @@ class Job(db.Model):
     def __init__(self, devpath):
         """ Initialize Job
 
-        devpath should be a string like "/sr0"
+        devpath should be a string like "/dev/sr0"
         """
         self.devpath = devpath
         self.mountpoint = "/mnt" + devpath
@@ -63,28 +62,32 @@ class Job(db.Model):
             self.video_type = cfg['VIDEOTYPE']
         self.parse_udev()
         self.get_pid()
-        self.arm_version = utils.get_arm_version()
+        self.arm_version = get_arm_version()
 
     def parse_udev(self):
         """Parse udev for properties of current disc"""
 
         context = pyudev.Context()
         device = pyudev.Devices.from_device_file(context, self.devpath)
-        self.disctype = "unknown"
 
+        # log all udev parameters
+        logging.debug("**** Logging udev attributes ****")
         for key, value in device.items():
-            if key == "ID_FS_LABEL":
-                self.label = value
-                if value == "iso9660":
-                    self.disctype = "data"
-            elif key == "ID_CDROM_MEDIA_BD":
-                self.disctype = "bluray"
-            elif key == "ID_CDROM_MEDIA_DVD":
-                self.disctype = "dvd"
-            elif key == "ID_CDROM_MEDIA_TRACK_COUNT_AUDIO":
-                self.disctype = "music"
-            else:
-                pass
+            logging.debug(key + ":" + value)
+        logging.debug("**** End udev attributes ****")
+
+        # determine disc type
+        self.disctype = "unknown"
+        if "ID_FS_LABEL" in device:
+            self.label = device["ID_FS_LABEL"]
+            if device["ID_FS_LABEL"] == "iso9660":
+                self.disctype = "data"
+        elif "ID_CDROM_MEDIA_BD" in device:
+            self.disctype = "bluray"
+        elif "ID_CDROM_MEDIA_DVD" in device:
+            self.disctype = "dvd"
+        elif "ID_CDROM_MEDIA_TRACK_COUNT_AUDIO" in device:
+            self.disctype = "music"
 
     def get_pid(self):
         pid = os.getpid()

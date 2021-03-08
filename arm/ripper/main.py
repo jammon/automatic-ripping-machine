@@ -11,15 +11,14 @@ import time  # noqa: E402
 import datetime  # noqa: E402
 import re  # noqa: E402
 import shutil  # noqa: E402
-import pyudev  # noqa: E402
 import getpass  # noqa E402
 import psutil  # noqa E402
 from pathlib import Path  # noqa: E402
 from arm.ripper import logger, utils, makemkv, handbrake, identify  # noqa: E402
-from arm.config.config import cfg  # noqa: E402
+from arm.config.config import cfg, get_arm_version  # noqa: E402
 
 from arm.ripper.getkeys import grabkeys  # noqa: E402
-from arm.models.models import Job, Config  # noqa: E402
+from arm.models.models import Job  # noqa: E402
 from arm.ui import app, db  # noqa E402
 
 
@@ -29,18 +28,6 @@ def arguments():
     parser.add_argument('-d', '--devpath', help='Devpath', required=True)
 
     return parser.parse_args()
-
-
-def log_udev_params():
-    """log all udev parameters"""
-
-    logging.debug("**** Logging udev attributes ****")
-    # logging.info("**** Start udev attributes ****")
-    context = pyudev.Context()
-    device = pyudev.Devices.from_device_file(context, '/dev/sr0')
-    for key, value in device.items():
-        logging.debug(key + ":" + value)
-    logging.debug("**** End udev attributes ****")
 
 
 def log_arm_params(job):
@@ -510,7 +497,7 @@ if __name__ == "__main__":
     job.start(db, cfg)
 
     # Log version number
-    logging.info(f"ARM version: {utils.get_arm_version()}")
+    logging.info(f"ARM version: {get_arm_version()}")
     logging.info(("Python version: " + sys.version).replace('\n', ""))
     logging.info("User is: " + getpass.getuser())
     logger.cleanuplogs(job.config.LOGPATH, job.config.LOGLIFE)
@@ -532,8 +519,6 @@ if __name__ == "__main__":
                 "Updating job status to fail.")
             j.status = "fail"
             db.session.commit()
-
-    log_udev_params()
 
     try:
         main(logfile, job)
