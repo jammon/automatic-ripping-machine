@@ -14,7 +14,7 @@ import random
 import re
 import psutil
 
-# from arm.config.config import cfg
+from arm.config.config import cfg
 from arm.ui import app, db
 from arm.models.models import Track, Job
 
@@ -932,18 +932,20 @@ Make a directory\n
         return False
 
 
+CDS_NO_INFO = 0
+CDS_NO_DISC = 1
+CDS_TRAY_OPEN = 2
+CDS_DRIVE_NOT_READY = 3
+CDS_DISC_OK = 4
+
+
 def get_cdrom_status(devpath):
-    """get the status of the cdrom drive\n
-    devpath = path to cdrom\n
+    """get the status of the cdrom drive
+    devpath = path to cdrom
 
     returns int
-    CDS_NO_INFO		0\n
-    CDS_NO_DISC		1\n
-    CDS_TRAY_OPEN		2\n
-    CDS_DRIVE_NOT_READY	3\n
-    CDS_DISC_OK		4\n
 
-    see linux/cdrom.h for specifics\n
+    see linux/cdrom.h for specifics
     """
 
     try:
@@ -1420,3 +1422,12 @@ def job_dupe_check(job):
     else:
         logging.debug("jobs is none or len(r) is 0 - we have no jobs")
         return False, None
+
+
+_arm_version = None
+def get_arm_version():
+    global _arm_version
+    if _arm_version is None:
+        with open(os.path.join(cfg["INSTALLPATH"], 'VERSION')) as version_file:
+            _arm_version = version_file.read().strip()
+    return _arm_version

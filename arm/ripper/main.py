@@ -14,7 +14,7 @@ import shutil  # noqa: E402
 import pyudev  # noqa: E402
 import getpass  # noqa E402
 import psutil  # noqa E402
-from pathlib import Path, PurePath  # noqa: E402
+from pathlib import Path  # noqa: E402
 from arm.ripper import logger, utils, makemkv, handbrake, identify  # noqa: E402
 from arm.config.config import cfg  # noqa: E402
 
@@ -23,7 +23,7 @@ from arm.models.models import Job, Config  # noqa: E402
 from arm.ui import app, db  # noqa E402
 
 
-def entry():
+def arguments():
     """ Entry to program, parses arguments"""
     parser = argparse.ArgumentParser(description='Process disc using ARM')
     parser.add_argument('-d', '--devpath', help='Devpath', required=True)
@@ -138,12 +138,12 @@ def main(logfile, job):
     have_dupes, crc_jobs = utils.job_dupe_check(job)
     if crc_jobs is not None:
         # This might need some tweaks to because of title/year manual
-        job.title = crc_jobs[0]['title'] if crc_jobs[0]['title'] != "" else job.label
-        job.year = crc_jobs[0]['year'] if crc_jobs[0]['year'] != "" else ""
-        job.poster_url = crc_jobs[0]['poster_url'] if crc_jobs[0]['poster_url'] != "" else None
-        crc_jobs[0]['hasnicetitle'] = bool(crc_jobs[0]['hasnicetitle'])
-        job.hasnicetitle = crc_jobs[0]['hasnicetitle'] if crc_jobs[0]['hasnicetitle'] else False
-        job.video_type = crc_jobs[0]['video_type'] if crc_jobs[0]['hasnicetitle'] != "" else "unknown"
+        crc_found = crc_jobs[0]
+        job.title = crc_found['title'] or job.label
+        job.year = crc_found['year']
+        job.poster_url = crc_found['poster_url'] or None
+        job.hasnicetitle = bool(crc_found['hasnicetitle'])
+        job.video_type = crc_found['video_type'] if crc_found['hasnicetitle'] else "unknown"
         db.session.commit()
     #  DVD disk entry
     if job.disctype in ["dvd", "bluray"]:
@@ -160,18 +160,6 @@ def main(logfile, job):
         utils.notify(job, "ARM Notification", "Could not identify disc.  Exiting.")
         sys.exit()
 
-    #  If we have have waiting for user input enabled
-    """if job.config.MANUAL_WAIT:
-        logging.info("Waiting " + str(job.config.MANUAL_WAIT_TIME) + " seconds for manual override.")
-        job.status = "waiting"
-        db.session.commit()
-        time.sleep(job.config.MANUAL_WAIT_TIME)
-        db.session.refresh(job)
-        db.session.refresh(config)
-        job.status = "active"
-        db.session.commit()
-    """
-
     # TODO: Update function that will look for the best match with most data
     #  If we have have waiting for user input enabled
     if job.config.MANUAL_WAIT:
@@ -183,6 +171,7 @@ def main(logfile, job):
             time.sleep(5)
             sleep_time += 5
             db.session.refresh(job)
+            # TODO: config is undefined here
             db.session.refresh(config)
             if job.title_manual:
                 break
@@ -486,28 +475,30 @@ def main(logfile, job):
         logging.info("Couldn't identify the disc type. Exiting without any action.")
 
 
+def prepare_logging():
+    log_file = Path(cfg['LOGPATH'], "NAS.log")
+    if not log_file.is_file():
+        log_file = Path(cfg['INSTALLPATH'], "NAS.log")
+    logging.basicConfig(filename=log_file,
+                        format='[%(asctime)s] %(levelname)s ARM: %(message)s',
+                        datefmt=cfg['DATE_FORMAT'], level="DEBUG")
+
+
 if __name__ == "__main__":
     # Make sure all directories are fully setup
     utils.arm_setup()
-    log_path = PurePath(cfg['LOGPATH'], "NAS.log")
-    log_file = Path(log_path)
-    if log_file.is_file():
-        logging.basicConfig(filename=log_file,
-                            format='[%(asctime)s] %(levelname)s ARM: %(message)s',
-                            datefmt=cfg['DATE_FORMAT'], level="DEBUG")
-    else:
-        logging.basicConfig(filename=cfg['INSTALLPATH'] + "NAS.log",
-                            format='[%(asctime)s] %(levelname)s ARM: %(message)s',
-                            datefmt=cfg['DATE_FORMAT'], level="DEBUG")
-    args = entry()
+    prepare_logging()
+    args = arguments()
     devpath = "/dev/" + args.devpath
     # print(devpath)
     job = Job(devpath)
     logfile = logger.setuplogging(job)
-    if utils.get_cdrom_status(devpath) != 4:
+    if utils.get_cdrom_status(devpath) != utils.CDS_DISC_OK:
         logging.info("Drive appears to be empty or is not ready.  Exiting ARM.")
         sys.exit()
     #  Dont put out anything if we are using the empty.log
+    # TODO: What does that mean, that we are using the empty.log?
+    # TODO: Is that some kind of error state?
     #  This kills multiple runs. it stops the same job triggering more than once
     if logfile.find("empty.log") != -1:
         sys.exit()
@@ -516,37 +507,29 @@ if __name__ == "__main__":
 
     utils.check_db_version(cfg['INSTALLPATH'], cfg['DBFILE'])
 
-    # put in db
-    job.status = "active"
-    job.start_time = datetime.datetime.now()
-    db.session.add(job)
-    db.session.commit()
-    config = Config(cfg, job_id=job.job_id)
-    db.session.add(config)
-    db.session.commit()
+    job.start(db, cfg)
 
     # Log version number
-    with open(os.path.join(job.config.INSTALLPATH, 'VERSION')) as version_file:
-        version = version_file.read().strip()
-    logging.info("ARM version: " + str(version))
-    job.arm_version = version
+    logging.info(f"ARM version: {utils.get_arm_version()}")
     logging.info(("Python version: " + sys.version).replace('\n', ""))
     logging.info("User is: " + getpass.getuser())
     logger.cleanuplogs(job.config.LOGPATH, job.config.LOGLIFE)
     logging.info("Job: " + str(job.label))
 
-    # a_jobs = Job.query.filter_by(status="active")
-    a_jobs = db.session.query(Job).filter(Job.status.notin_(['fail', 'success'])).all()
+    active_jobs = db.session.query(Job).filter(
+        Job.status.notin_(['fail', 'success'])).all()
 
     # Clean up abandoned jobs
-    for j in a_jobs:
+    for j in active_jobs:
         if psutil.pid_exists(j.pid):
             p = psutil.Process(j.pid)
             if j.pid_hash == hash(p):
-                logging.info("Job #" + str(j.job_id) + " with PID " + str(j.pid) + " is currently running.")
+                logging.info(
+                    f"Job #{j.job_id} with PID {j.pid} is currently running.")
         else:
-            logging.info("Job #" + str(j.job_id) + " with PID " + str(
-                j.pid) + " has been abandoned.  Updating job status to fail.")
+            logging.info(
+                f"Job #{j.job_id} with PID {j.pid} has been abandoned.  "
+                "Updating job status to fail.")
             j.status = "fail"
             db.session.commit()
 
@@ -555,6 +538,7 @@ if __name__ == "__main__":
     try:
         main(logfile, job)
     except Exception as e:
+        # TODO: this should be a method of Job
         logging.exception("A fatal error has occurred and ARM is exiting.  See traceback below for details.")
         utils.notify(job, "ARM notification", "ARM encountered a fatal error processing " + str(
             job.title) + ". Check the logs for more details. " + str(e))
@@ -567,6 +551,5 @@ if __name__ == "__main__":
         joblength = job.stop_time - job.start_time
         minutes, seconds = divmod(joblength.seconds + joblength.days * 86400, 60)
         hours, minutes = divmod(minutes, 60)
-        total_len = '{:d}:{:02d}:{:02d}'.format(hours, minutes, seconds)
-        job.job_length = total_len
+        job.job_length = '{:d}:{:02d}:{:02d}'.format(hours, minutes, seconds)
         db.session.commit()

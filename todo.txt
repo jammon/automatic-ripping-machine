@@ -1,0 +1,4 @@
+"Find us on" in the footer should point to the correct/current repo
+Check reference to github.com/automatic-ripping-machine
+make folders like '~/media/completed' instead of error message
+There is a 'job_dupe_check()' in ripper.utils and in ui.utils

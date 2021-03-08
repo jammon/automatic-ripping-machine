@@ -22,6 +22,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = sqlitefile
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # We should really gen a key for each system
 app.config['SECRET_KEY'] = "Big secret key"
+# TODO: the database is defined in the UI-module - that seems just wrong
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)

@@ -1,19 +1,22 @@
+import datetime
 import os
 import pyudev
 import psutil
 import logging
 from arm.ui import db
+from arm.ripper import utils
 from arm.config.config import cfg  # noqa: E402
 from flask_login import LoginManager, current_user, login_user, UserMixin  # noqa: F401
 from prettytable import PrettyTable
 
 
 class Job(db.Model):
+    """ A Job represents a disc and its status in the ripping process
+    """
     job_id = db.Column(db.Integer, primary_key=True)
     arm_version = db.Column(db.String(20))
     crc_id = db.Column(db.String(63))
     logfile = db.Column(db.String(256))
-    # disc = db.Column(db.String(63))
     start_time = db.Column(db.DateTime)
     stop_time = db.Column(db.DateTime)
     job_length = db.Column(db.String(12))
@@ -25,7 +28,7 @@ class Job(db.Model):
     year = db.Column(db.String(4))
     year_auto = db.Column(db.String(4))
     year_manual = db.Column(db.String(4))
-    video_type = db.Column(db.String(20))
+    video_type = db.Column(db.String(20), default="unknown")
     video_type_auto = db.Column(db.String(20))
     video_type_manual = db.Column(db.String(20))
     imdb_id = db.Column(db.String(15))
@@ -36,34 +39,35 @@ class Job(db.Model):
     poster_url_manual = db.Column(db.String(256))
     devpath = db.Column(db.String(15))
     mountpoint = db.Column(db.String(20))
-    hasnicetitle = db.Column(db.Boolean)
+    hasnicetitle = db.Column(db.Boolean, default=False)
     errors = db.Column(db.Text)
     disctype = db.Column(db.String(20))  # dvd/bluray/data/music/unknown
     label = db.Column(db.String(256))
-    ejected = db.Column(db.Boolean)
-    updated = db.Column(db.Boolean)
+    ejected = db.Column(db.Boolean, default=False)
+    updated = db.Column(db.Boolean, default=False)
     pid = db.Column(db.Integer)
     pid_hash = db.Column(db.Integer)
     tracks = db.relationship('Track', backref='job', lazy='dynamic')
     config = db.relationship('Config', uselist=False, backref="job")
 
     def __init__(self, devpath):
-        """Return a disc object"""
+        """ Initialize Job
+
+        devpath should be a string like "/sr0"
+        """
         self.devpath = devpath
         self.mountpoint = "/mnt" + devpath
-        self.hasnicetitle = False
-        self.video_type = "unknown"
-        self.ejected = False
-        self.updated = False
+        # TODO: delete this check
+        assert self.video_type == "unknown"
         if cfg['VIDEOTYPE'] != "auto":
             self.video_type = cfg['VIDEOTYPE']
         self.parse_udev()
         self.get_pid()
+        self.arm_version = utils.get_arm_version()
 
     def parse_udev(self):
         """Parse udev for properties of current disc"""
 
-        # print("Entering disc")
         context = pyudev.Context()
         device = pyudev.Devices.from_device_file(context, self.devpath)
         self.disctype = "unknown"
@@ -90,12 +94,9 @@ class Job(db.Model):
 
     def __str__(self):
         """Returns a string of the object"""
-
-        s = self.__class__.__name__ + ": "
-        for attr, value in self.__dict__.items():
-            s = s + "(" + str(attr) + "=" + str(value) + ") "
-
-        return s
+        items = " ".join(
+            f"({attr}={value})" for attr, value in self.__dict__.items())
+        return f"{self.__class__.__name__}: {items}"
 
     def pretty_table(self):
         """Returns a string of the prettytable"""
@@ -119,8 +120,20 @@ class Job(db.Model):
     def __repr__(self):
         return '<Job {}>'.format(self.label)
 
+    def start(self, database, configuration):
+        """ Document starting of the job
+        """
+        self.status = "active"
+        self.start_time = datetime.datetime.now()
+        database.session.add(self)
+        database.session.commit()
+        config = Config(configuration, job_id=self.job_id)
+        database.session.add(config)
+        database.session.commit()
+
     def eject(self):
         """Eject disc if it hasn't previously been ejected"""
+        # TODO: should we test for `self.ejected`?
         try:
             if os.system("umount " + self.devpath):
                 logging.debug("we unmounted disc" + self.devpath)
@@ -147,27 +160,33 @@ class Track(db.Model):
     filename = db.Column(db.String(256))
     orig_filename = db.Column(db.String(256))
     new_filename = db.Column(db.String(256))
-    ripped = db.Column(db.Boolean)
+    ripped = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(32))
     error = db.Column(db.Text)
     source = db.Column(db.String(32))
 
-    def __init__(self, job_id, track_number, length, aspect_ratio, fps, main_feature, source, basename, filename):
-        """Return a track object"""
+    def __init__(self, job_id, track_number, length, aspect_ratio, fps,
+                 main_feature, source, basename, filename):
         self.job_id = job_id
         self.track_number = track_number
         self.length = length
         self.aspect_ratio = aspect_ratio
-        # self.blocks = blocks
         self.fps = fps
         self.main_feature = main_feature
         self.source = source
         self.basename = basename
         self.filename = filename
-        self.ripped = False
+        # TODO: delete this check
+        assert self.ripped is False
 
     def __repr__(self):
         return '<Post {}>'.format(self.track_number)
+
+
+HIDDEN_ATTRIBUTES = (
+    "OMDB_API_KEY", "EMBY_USERID", "EMBY_PASSWORD", "EMBY_API_KEY", "PB_KEY",
+    "IFTTT_KEY", "PO_KEY", "PO_USER_KEY", "PO_APP_KEY")
+HIDDEN_VALUE = "<hidden>"
 
 
 class Config(db.Model):
@@ -227,37 +246,24 @@ class Config(db.Model):
     PO_APP_KEY = db.Column(db.String(64))
     OMDB_API_KEY = db.Column(db.String(64))
 
-    # job = db.relationship("Job", backref="config")
-
     def __init__(self, c, job_id):
+        # TODO: explain `c`
         self.__dict__.update(c)
         self.job_id = job_id
 
+    def _representation(self, delimiter):
+        items = delimiter.join(
+            f"{attr}:{HIDDEN_VALUE if str(attr) in HIDDEN_ATTRIBUTES else value}"
+            for attr, value in self.__dict__.items())
+        return f"{self.__class__.__name__}:{delimiter}{items}"
+
     def list_params(self):
         """Returns a string of the object"""
-        s = self.__class__.__name__ + ": "
-        for attr, value in self.__dict__.items():
-            if s:
-                s = s + "\n"
-            if str(attr) in (
-                    "OMDB_API_KEY", "EMBY_USERID", "EMBY_PASSWORD", "EMBY_API_KEY", "PB_KEY", "IFTTT_KEY", "PO_KEY",
-                    "PO_USER_KEY", "PO_APP_KEY") and value:
-                value = "<hidden>"
-            s = s + str(attr) + ":" + str(value)
-
-        return s
+        return self._representation("\n")
 
     def __str__(self):
         """Returns a string of the object"""
-        s = self.__class__.__name__ + ": "
-        for attr, value in self.__dict__.items():
-            if str(attr) in (
-                    "OMDB_API_KEY", "EMBY_USERID", "EMBY_PASSWORD", "EMBY_API_KEY", "PB_KEY", "IFTTT_KEY", "PO_KEY",
-                    "PO_USER_KEY", "PO_APP_KEY") and value:
-                value = "<hidden>"
-            s = s + "(" + str(attr) + "=" + str(value) + ") "
-
-        return s
+        return self._representation(" ")
 
     def pretty_table(self):
         """Returns a string of the prettytable"""
@@ -265,10 +271,8 @@ class Config(db.Model):
         x.field_names = ["Config", "Value"]
         x._max_width = {"Config": 20, "Value": 30}
         for attr, value in self.__dict__.items():
-            if str(attr) in (
-                    "OMDB_API_KEY", "EMBY_USERID", "EMBY_PASSWORD", "EMBY_API_KEY", "PB_KEY", "IFTTT_KEY", "PO_KEY",
-                    "PO_USER_KEY", "PO_APP_KEY") and value:
-                value = "<hidden>"
+            if str(attr) in HIDDEN_ATTRIBUTES and value:
+                value = HIDDEN_VALUE
             x.add_row([str(attr), str(value)])
         return str(x.get_string())
 
