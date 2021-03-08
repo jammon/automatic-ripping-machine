@@ -4,3 +4,4 @@ make folders like '~/media/completed' instead of error message
 There is a 'job_dupe_check()' in ripper.utils and in ui.utils
 Setting PYTHONPATH should occur in the wrapper scripts
 There should be a configurable way to deal with unidentified discs
+Add chmod a+x scripts/arm_wrapper.sh to wiki on installation

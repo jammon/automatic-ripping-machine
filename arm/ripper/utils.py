@@ -1175,9 +1175,8 @@ def put_track(job, t_no, seconds, aspect, fps, mainfeature, source, filename="")
     db.session.commit()
 
 
-def arm_setup():
-    """
-    setup arm - make sure everything is fully setup and ready and there are no errors. This is still in dev. ATM
+def setup_folders():
+    """ Setup the folders configured in arm.yaml
 
     :arguments
     None
@@ -1185,20 +1184,10 @@ def arm_setup():
     :return
     None
     """
-    from arm.config.config import cfg
     try:
-        # Make the ARM dir if it doesnt exist
-        if not os.path.exists(cfg['ARMPATH']):
-            os.makedirs(cfg['ARMPATH'])
-        # Make the RAW dir if it doesnt exist
-        if not os.path.exists(cfg['RAWPATH']):
-            os.makedirs(cfg['RAWPATH'])
-        # Make the Media dir if it doesnt exist
-        if not os.path.exists(cfg['MEDIA_DIR']):
-            os.makedirs(cfg['MEDIA_DIR'])
-        # Make the log dir if it doesnt exist
-        if not os.path.exists(cfg['LOGPATH']):
-            os.makedirs(cfg['LOGPATH'])
+        # Make the configured folders if they don't exist
+        for path in ('ARMPATH', 'RAWPATH', 'MEDIA_DIR', 'LOGPATH'):
+            os.makedirs(cfg[path], exist_ok=True)
     except IOError as e:  # noqa: F841
         # logging.error("A fatal error has occurred.  Cant find/create the folders from arm.yaml " + str(e))
         # notify(job, "ARM notification", "ARM encountered a fatal error processing " + str(job.title) + ". Check the

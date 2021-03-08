@@ -473,7 +473,7 @@ def prepare_logging():
 
 if __name__ == "__main__":
     # Make sure all directories are fully setup
-    utils.arm_setup()
+    utils.setup_folders()
     prepare_logging()
     args = arguments()
     devpath = "/dev/" + args.devpath

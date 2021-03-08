@@ -27,7 +27,7 @@ class Job(db.Model):
     year = db.Column(db.String(4))
     year_auto = db.Column(db.String(4))
     year_manual = db.Column(db.String(4))
-    video_type = db.Column(db.String(20), default="unknown")
+    video_type = db.Column(db.String(20))
     video_type_auto = db.Column(db.String(20))
     video_type_manual = db.Column(db.String(20))
     imdb_id = db.Column(db.String(15))
@@ -38,12 +38,12 @@ class Job(db.Model):
     poster_url_manual = db.Column(db.String(256))
     devpath = db.Column(db.String(15))
     mountpoint = db.Column(db.String(20))
-    hasnicetitle = db.Column(db.Boolean, default=False)
+    hasnicetitle = db.Column(db.Boolean)
     errors = db.Column(db.Text)
     disctype = db.Column(db.String(20))  # dvd/bluray/data/music/unknown
     label = db.Column(db.String(256))
-    ejected = db.Column(db.Boolean, default=False)
-    updated = db.Column(db.Boolean, default=False)
+    ejected = db.Column(db.Boolean)
+    updated = db.Column(db.Boolean)
     pid = db.Column(db.Integer)
     pid_hash = db.Column(db.Integer)
     tracks = db.relationship('Track', backref='job', lazy='dynamic')
@@ -56,8 +56,10 @@ class Job(db.Model):
         """
         self.devpath = devpath
         self.mountpoint = "/mnt" + devpath
-        # TODO: delete this check
-        assert self.video_type == "unknown"
+        self.hasnicetitle = False
+        self.video_type = "unknown"
+        self.ejected = False
+        self.updated = False
         if cfg['VIDEOTYPE'] != "auto":
             self.video_type = cfg['VIDEOTYPE']
         self.parse_udev()
@@ -163,7 +165,7 @@ class Track(db.Model):
     filename = db.Column(db.String(256))
     orig_filename = db.Column(db.String(256))
     new_filename = db.Column(db.String(256))
-    ripped = db.Column(db.Boolean, default=False)
+    ripped = db.Column(db.Boolean)
     status = db.Column(db.String(32))
     error = db.Column(db.Text)
     source = db.Column(db.String(32))
@@ -179,8 +181,7 @@ class Track(db.Model):
         self.source = source
         self.basename = basename
         self.filename = filename
-        # TODO: delete this check
-        assert self.ripped is False
+        self.ripped = False
 
     def __repr__(self):
         return '<Post {}>'.format(self.track_number)
