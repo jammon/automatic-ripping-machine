@@ -25,7 +25,8 @@ from arm.ui import app, db  # noqa E402
 def arguments():
     """ Entry to program, parses arguments"""
     parser = argparse.ArgumentParser(description='Process disc using ARM')
-    parser.add_argument('-d', '--devpath', help='Devpath', required=True)
+    parser.add_argument(
+        '-d', '--devpath', help='Devpath, like e.g. "sr0"', required=True)
 
     return parser.parse_args()
 
