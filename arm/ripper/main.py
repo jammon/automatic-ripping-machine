@@ -99,21 +99,13 @@ def check_ip():
     if host == 'x.x.x.x':
         # autodetect host IP address
         from netifaces import interfaces, ifaddresses, AF_INET
-        ip_list = []
         for interface in interfaces():
-            inet_links = ifaddresses(interface).get(AF_INET, [])
-            for link in inet_links:
+            for link in ifaddresses(interface).get(AF_INET, []):
                 ip = link['addr']
-                # print(str(ip))
                 if ip != '127.0.0.1' and not (ip.startswith('172')):
-                    ip_list.append(ip)
-                    # print(str(ip))
-        if len(ip_list) > 0:
-            return ip_list[0]
-        else:
-            return '127.0.0.1'
-    else:
-        return host
+                    return ip
+        return '127.0.0.1'
+    return host
 
 
 def main(logfile, job):
