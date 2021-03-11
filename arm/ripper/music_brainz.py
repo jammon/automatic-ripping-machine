@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 import logging
+import musicbrainzngs as mb
 import re
 import time
-import musicbrainzngs as mb
 from discid import read, Disc
 
 from arm.config.config import cfg
-from arm.ui import app, db  # noqa E402
+from arm.ui import db
+from robobrowser import RoboBrowser
+
 import werkzeug
 werkzeug.cached_property = werkzeug.utils.cached_property
-from robobrowser import RoboBrowser  # noqa E402
 
 
 def main(disc):
