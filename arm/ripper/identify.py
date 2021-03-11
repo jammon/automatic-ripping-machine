@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 # Identification of dvd/bluray
 
-import os
-import sys  # noqa # pylint: disable=unused-import
-import logging
-import urllib
-import re
 import datetime
-import pydvdid
-import unicodedata
-import xmltodict
 import json
+import logging
+import os
+import pydvdid
+import re
 import requests
+import sys
+import unicodedata
+import urllib
+import xmltodict
 
 from arm.ripper import music_brainz
 from arm.ripper import utils

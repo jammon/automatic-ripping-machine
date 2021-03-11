@@ -1,20 +1,18 @@
-import os
-import subprocess
-from time import strftime, localtime
-import urllib
-import json
-import re
-import psutil
-import requests
-import bcrypt  # noqa: F401
 import html
+import json
+import os
+import psutil
+import re
+import requests
+import subprocess
+import urllib
 
+from time import strftime, localtime
 from pathlib import Path
+
 from arm.config.config import cfg
-from flask.logging import default_handler  # noqa: F401
 from arm.ui import app, db
-from arm.models.models import Job, Config, Track, User, Alembic_version  # noqa: F401
-from flask import Flask, render_template, flash, jsonify  # noqa: F401
+from arm.models.models import Job, Config, Track, User, Alembic_version
 
 
 def get_info(directory):

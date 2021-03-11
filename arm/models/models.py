@@ -1,11 +1,11 @@
 import datetime
-import os
-import pyudev
-import psutil
 import logging
+import os
+import psutil
+import pyudev
+from arm.config.config import cfg, get_arm_version
 from arm.ui import db
-from arm.config.config import cfg, get_arm_version  # noqa: E402
-from flask_login import LoginManager, current_user, login_user, UserMixin  # noqa: F401
+from flask_login import UserMixin
 from prettytable import PrettyTable
 
 

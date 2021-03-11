@@ -2,7 +2,6 @@
 
 from arm.ui import app
 from arm.config.config import cfg
-import arm.ui.routes
 
 
 LOCALHOST = '127.0.0.1'

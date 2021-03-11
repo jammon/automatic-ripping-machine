@@ -1,30 +1,25 @@
 #!/usr/bin/env python3
 # Handbrake processing of dvd/bluray
 
-import sys
-import os
 import logging
-import subprocess
+import os
 import re
 import shlex
-# Added for sleep check/ transcode limits
-import time  # noqa: F401
-import datetime  # noqa: F401
-import psutil  # noqa: F401
+import subprocess
+import sys
 
 from arm.ripper import utils
-# from arm.config.config import cfg
-from arm.models.models import Track  # noqa: F401
-from arm.ui import app, db  # noqa E402
+from arm.ui import db
 from arm.config.config import cfg
 
 
 def handbrake_mainfeature(srcpath, basepath, logfile, job):
-    """process dvd with mainfeature enabled.\n
-    srcpath = Path to source for HB (dvd or files)\n
-    basepath = Path where HB will save trancoded files\n
-    logfile = Logfile for HB to redirect output to\n
-    job = Job object\n
+    """process dvd with mainfeature enabled.
+
+    srcpath = Path to source for HB (dvd or files)
+    basepath = Path where HB will save trancoded files
+    logfile = Logfile for HB to redirect output to
+    job = Job object
 
     Returns nothing
     """

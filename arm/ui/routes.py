@@ -1,29 +1,26 @@
-import os
-import psutil
-import platform
-import subprocess
-import re
-import sys  # noqa: F401
 import bcrypt
 import hashlib
 import json
-import yaml
+import os
+import platform
+import psutil
+import re
 import requests
-import arm.ui.utils as utils
+import subprocess
+import yaml
 
-from time import sleep
-from flask import Flask, render_template, make_response, abort, request, send_file, flash, \
-    redirect, url_for  # noqa: F401
-from arm.ui import app, db
-from arm.models.models import Job, Config, Track, User, Alembic_version  # noqa: F401
-from arm.config.config import cfg
-from arm.ui.forms import TitleSearchForm, ChangeParamsForm, CustomTitleForm, SettingsForm
+from flask import render_template, request, send_file, flash, \
+    redirect, url_for
+from flask_login import login_required, current_user, login_user, logout_user
 from pathlib import Path, PurePath
-from flask.logging import default_handler  # noqa: F401
-from flask_login import LoginManager, login_required, current_user, login_user, UserMixin, logout_user  # noqa: F401
+from time import sleep
 
-login_manager = LoginManager()
-login_manager.init_app(app)
+import arm.ui.utils as utils
+from arm.config.config import cfg
+from arm.models.models import Job, Config, Track, User
+from arm.ui import app, db, login_manager
+from arm.ui.forms import TitleSearchForm, ChangeParamsForm, CustomTitleForm, \
+    SettingsForm
 
 
 @login_manager.user_loader

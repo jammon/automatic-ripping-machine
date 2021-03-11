@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-import sys
-import os
 import logging
-import subprocess
-import time
+import os
 import shlex
+import subprocess
+import sys
+import time
 
 from arm.config.config import cfg
-from arm.ripper import utils  # noqa: E402
-from arm.ui import db  # noqa: F401, E402
+from arm.ripper import utils
 
 
 def makemkv(logfile, job):

@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # Collection of utility functions
-import os
-import sys
-import yaml
-import logging
-import fcntl
-import subprocess
-import shutil
-import requests
-import time
 import apprise
+import fcntl
+import logging
+import os
+import psutil
 import random
 import re
-import psutil
+import requests
+import shutil
+import subprocess
+import sys
+import time
+import yaml
 
 from arm.config.config import cfg
 from arm.ui import app, db

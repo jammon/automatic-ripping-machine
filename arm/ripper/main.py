@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-import sys
 import argparse
-import os
-import logging
-import time
 import datetime
+import getpass
+import logging
+import os
+import psutil
 import re
 import shutil
-import getpass
-import psutil
+import sys
+import time
 from pathlib import Path
 
 from arm.ripper import logger, utils, makemkv, handbrake, identify
