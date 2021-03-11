@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
-
 import sys
+import argparse
+import os
+import logging
+import time
+import datetime
+import re
+import shutil
+import getpass
+import psutil
+from pathlib import Path
 
-sys.path.append("/opt/arm")
-
-import argparse  # noqa: E402
-import os  # noqa: E402
-import logging  # noqa: E402
-import time  # noqa: E402
-import datetime  # noqa: E402
-import re  # noqa: E402
-import shutil  # noqa: E402
-import getpass  # noqa E402
-import psutil  # noqa E402
-from pathlib import Path  # noqa: E402
-from arm.ripper import logger, utils, makemkv, handbrake, identify  # noqa: E402
-from arm.config.config import cfg, get_arm_version  # noqa: E402
-
-from arm.ripper.getkeys import grabkeys  # noqa: E402
-from arm.models.models import Job  # noqa: E402
-from arm.ui import app, db  # noqa E402
+from arm.ripper import logger, utils, makemkv, handbrake, identify
+from arm.config.config import cfg, get_arm_version
+from arm.ripper.getkeys import grabkeys
+from arm.models.models import Job
+from arm.ui import db
 
 
 def arguments():

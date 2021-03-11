@@ -1,10 +1,9 @@
-import os  # noqa: F401
-import sys
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+#!/usr/bin/env python3
 
-from arm.ui import app  # noqa E402
-from arm.config.config import cfg  # noqa E402
-import arm.ui.routes  # noqa E402
+from arm.ui import app
+from arm.config.config import cfg
+import arm.ui.routes
+
 
 LOCALHOST = '127.0.0.1'
 AUTODETECT = 'x.x.x.x'
